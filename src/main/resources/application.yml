@@ -1,0 +1,10 @@
+app:
+  sqlite:
+    path: ${SQLITE_PATH}
+  mssql:
+    url: "jdbc:sqlserver://${MSSQL_HOST:10.10.10.10}:${MSSQL_PORT:1433};databaseName=${MSSQL_DB:Logs1C};encrypt=false;trustServerCertificate=true;sslProtocol=TLSv1;"
+    username: ${MSSQL_USER:sa}
+    password: ${MSSQL_PASS:password}
+  migration:
+    batch-size: ${BATCH_SIZE:1000}
+    interval-ms: ${INTERVAL_MS:60000}
