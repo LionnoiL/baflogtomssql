@@ -8,3 +8,12 @@ app:
   migration:
     batch-size: ${BATCH_SIZE:1000}
     interval-ms: ${INTERVAL_MS:60000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
