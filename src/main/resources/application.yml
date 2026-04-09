@@ -17,3 +17,15 @@ management:
   endpoint:
     health:
       show-details: always
+
+spring:
+  sql:
+    init:
+      mode: always
+      platform: mssql
+      encoding: UTF-8
+  datasource:
+    url: ${app.mssql.url}
+    username: ${app.mssql.username}
+    password: ${app.mssql.password}
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver

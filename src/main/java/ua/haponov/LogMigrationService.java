@@ -60,12 +60,20 @@ public class LogMigrationService {
                 int count = 0;
 
                 while (rs.next()) {
-                    insertStmt.setLong(1, rs.getLong("RowID"));
-                    insertStmt.setTimestamp(2, Timestamp.valueOf(convertTicks(rs.getLong("Date"))));
-                    insertStmt.setString(3, rs.getString("User"));
-                    insertStmt.setString(4, rs.getString("Event"));
-                    insertStmt.setString(5, rs.getString("Computer"));
-                    insertStmt.setString(6, rs.getString("Comment"));
+                    long rowId = rs.getLong("RowID");
+                    LocalDateTime eventDate = convertTicks(rs.getLong("Date"));
+
+                    String user = cleanQuotes(rs.getString("User"));
+                    String event = cleanQuotes(rs.getString("Event"));
+                    String computer = cleanQuotes(rs.getString("Computer"));
+                    String comment = rs.getString("Comment");
+
+                    insertStmt.setLong(1, rowId);
+                    insertStmt.setTimestamp(2, Timestamp.valueOf(eventDate));
+                    insertStmt.setString(3, user);
+                    insertStmt.setString(4, event);
+                    insertStmt.setString(5, computer);
+                    insertStmt.setString(6, comment);
                     insertStmt.setInt(7, rs.getInt("Severity"));
                     insertStmt.setString(8, rs.getString("DataPresentation"));
                     insertStmt.addBatch();
@@ -82,6 +90,11 @@ public class LogMigrationService {
         } catch (SQLException e) {
             log.error("Ошибка SQL при миграции: {}", e.getMessage());
         }
+    }
+
+    private String cleanQuotes(String value) {
+        if (value == null) return null;
+        return value.replace("\"", "");
     }
 
     private LocalDateTime convertTicks(long ticks) {
