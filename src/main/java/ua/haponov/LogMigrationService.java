@@ -31,17 +31,17 @@ public class LogMigrationService {
         log.info("Начало цикла миграции...");
 
         String selectSql = """
-                SELECT el.RowID, el.Date, u.Name as User, e.Name as Event, c.Name as Computer, 
+                SELECT el.RowID, el.Date, u.Name as User, e.Name as Event, c.Name as Computer,
                        el.Comment, el.Severity, el.DataPresentation
                 FROM EventLog el
                 LEFT JOIN UserCodes u ON el.UserCode = u.Code
-                LEFT JOIN EventCodes e ON el.EventCode = e.Code  -- <--- Проверьте здесь
+                LEFT JOIN EventCodes e ON el.EventCode = e.Code 
                 LEFT JOIN ComputerCodes c ON el.ComputerCode = c.Code
                 WHERE el.RowID > ? ORDER BY el.RowID ASC LIMIT ?
                 """;
 
         String insertSql = """
-                INSERT INTO EventLogSync (row_id, event_date, user_name, event_name, computer, comment, severity, data_info) 
+                INSERT INTO EventLogSync (row_id, event_date, user_name, event_name, computer, comment, severity, data_info)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """;
 
