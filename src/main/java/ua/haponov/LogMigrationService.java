@@ -9,6 +9,8 @@ import java.sql.*;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -54,9 +56,12 @@ public class LogMigrationService {
     private String mssqlPass;
     @Value("${app.migration.batch-size}")
     private int batchSize;
+    @Value("${app.migration.delete-after-sync:false}")
+    private boolean deleteAfterSync;
 
     @Scheduled(fixedDelayString = "${app.migration.interval-ms}")
     public void runMigration() {
+
         log.info("Начало цикла миграции...");
 
         String selectSql = """
@@ -74,6 +79,10 @@ public class LogMigrationService {
         try (Connection sqliteConn = DriverManager.getConnection("jdbc:sqlite:" + sqlitePath);
              Connection mssqlConn = DriverManager.getConnection(mssqlUrl, mssqlUser, mssqlPass)) {
 
+            configureSqlite(sqliteConn);
+
+            mssqlConn.setAutoCommit(false);
+
             syncMetadata(sqliteConn, mssqlConn);
             syncUsers(sqliteConn, mssqlConn);
             syncApplications(sqliteConn, mssqlConn);
@@ -88,42 +97,105 @@ public class LogMigrationService {
                 selectStmt.setLong(1, lastRowId);
                 selectStmt.setInt(2, batchSize);
 
-                ResultSet rs = selectStmt.executeQuery();
-                int count = 0;
+                try (ResultSet rs = selectStmt.executeQuery()) {
 
-                while (rs.next()) {
+                    long firstId = -1;
+                    long lastId = -1;
+                    int count = 0;
+                    List<Long> syncedIds = new ArrayList<>();
 
-                    insertStmt.setLong(1, rs.getLong("rowID"));
-                    insertStmt.setTimestamp(2, Timestamp.valueOf(convertTicks(rs.getLong("date"))));
-                    insertStmt.setObject(3, rs.getInt("userCode"));
-                    insertStmt.setObject(4, rs.getInt("eventCode"));
-                    insertStmt.setObject(5, rs.getInt("computerCode"));
-                    insertStmt.setObject(6, rs.getInt("appCode"));
-                    insertStmt.setObject(7, rs.getInt("metadataCodes"));
-                    insertStmt.setInt(8, rs.getInt("severity"));
-                    insertStmt.setString(9, rs.getString("comment"));
-                    insertStmt.setString(10, rs.getString("dataPresentation"));
+                    while (rs.next()) {
 
-                    insertStmt.addBatch();
-                    count++;
-                }
+                        long rowId = rs.getLong("rowID");
+                        if (count == 0) firstId = rowId;
+                        lastId = rowId;
 
-                if (count > 0) {
-                    long startTime = System.currentTimeMillis();
+                        insertStmt.setLong(1, rowId);
+                        insertStmt.setTimestamp(2, Timestamp.valueOf(convertTicks(rs.getLong("date"))));
+                        setOptionalInt(insertStmt, 3, rs.getInt("userCode"));
+                        setOptionalInt(insertStmt, 4, rs.getInt("eventCode"));
+                        setOptionalInt(insertStmt, 5, rs.getInt("computerCode"));
+                        setOptionalInt(insertStmt, 6, rs.getInt("appCode"));
+                        setOptionalInt(insertStmt, 7, rs.getInt("metadataCodes"));
+                        insertStmt.setInt(8, rs.getInt("severity"));
+                        insertStmt.setString(9, rs.getString("comment"));
+                        insertStmt.setString(10, rs.getString("dataPresentation"));
 
-                    insertStmt.executeBatch();
+                        if (deleteAfterSync) {
+                            syncedIds.add(rowId);
+                        }
 
-                    long duration = System.currentTimeMillis() - startTime;
-                    log.info("Успешно перенесено {} записей за {} мс (скорость: {} зап/сек).",
-                            count,
-                            duration,
-                            (count * 1000L / Math.max(duration, 1)));
-                } else {
-                    log.info("Новых записей не обнаружено.");
+                        insertStmt.addBatch();
+                        count++;
+                    }
+
+                    if (count > 0) {
+                        long startTime = System.currentTimeMillis();
+
+                        insertStmt.executeBatch();
+                        mssqlConn.commit();
+
+                        long duration = System.currentTimeMillis() - startTime;
+                        log.info("Успешно перенесено {} записей за {} мс (скорость: {} зап/сек).",
+                                count,
+                                duration,
+                                (count * 1000L / Math.max(duration, 1)));
+
+                        if (deleteAfterSync) {
+                            sqliteConn.setAutoCommit(false);
+                            try (PreparedStatement deleteStmt = sqliteConn.prepareStatement(
+                                    "DELETE FROM EventLog WHERE rowID >= ? AND rowID <= ?")) {
+                                deleteStmt.setLong(1, firstId);
+                                deleteStmt.setLong(2, lastId);
+
+                                int deletedCount = deleteStmt.executeUpdate();
+                                sqliteConn.commit();
+                                log.info("Очищено {} записей в SQLite диапазоном ID [{} - {}].", deletedCount, firstId, lastId);
+
+                                try (Statement stmt = sqliteConn.createStatement()) {
+                                    stmt.execute("PRAGMA incremental_vacuum(100);");
+                                }
+
+
+                            } catch (Exception e) {
+                                sqliteConn.rollback();
+                                throw e;
+                            } finally {
+                                sqliteConn.setAutoCommit(true);
+                            }
+                        }
+
+                    } else {
+                        log.info("Новых записей не обнаружено.");
+                    }
+                } catch (Exception e) {
+                    mssqlConn.rollback();
+                    throw e;
+                } finally {
+                    mssqlConn.setAutoCommit(true);
                 }
             }
         } catch (SQLException e) {
             log.error("Ошибка SQL при миграции: {}", e.getMessage());
+        }
+    }
+
+    private void configureSqlite(Connection conn) throws SQLException {
+        try (Statement stmt = conn.createStatement()) {
+            ResultSet rs = stmt.executeQuery("PRAGMA auto_vacuum;");
+            if (rs.next() && rs.getInt(1) != 2) { // 2 = INCREMENTAL
+                stmt.execute("PRAGMA auto_vacuum = INCREMENTAL;");
+                stmt.execute("VACUUM;");
+                log.info("SQLite переведен в режим INCREMENTAL auto-vacuum.");
+            }
+        }
+    }
+
+    private void setOptionalInt(PreparedStatement stmt, int index, int value) throws SQLException {
+        if (value == 0) {
+            stmt.setNull(index, Types.INTEGER);
+        } else {
+            stmt.setInt(index, value);
         }
     }
 
