@@ -30,3 +30,7 @@ spring:
     username: ${app.mssql.username}
     password: ${app.mssql.password}
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+
+logging:
+  level:
+    com.microsoft.sqlserver.jdbc.internals.TDS.Channel: ERROR
