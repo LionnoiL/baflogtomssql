@@ -81,7 +81,7 @@ public class LogController {
         String dataSql = """
                 SELECT
                     els.row_id, els.event_date, els.comment, els.data_info,
-                    u.user_name, en.event_human_name, c.computer_name, 
+                    u.user_name, en.event_human_name, c.computer_name,
                     app.app_name, m.metadata_name, sl.severity_name, sl.severity_color
                 FROM EventLogSync els
                 LEFT JOIN Users u ON els.user_id = u.user_id
@@ -102,10 +102,10 @@ public class LogController {
 
         return Map.of(
                 "content", logs,
-                "totalElements", totalRows != null ? totalRows : 0,
+                "totalElements", totalRows,
                 "page", page,
                 "size", size,
-                "totalPages", (int) Math.ceil((double) (totalRows != null ? totalRows : 0) / size)
+                "totalPages", (int) Math.ceil((double) totalRows/ size)
         );
     }
 
