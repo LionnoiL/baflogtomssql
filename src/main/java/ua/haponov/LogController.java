@@ -1,15 +1,18 @@
 package ua.haponov;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/logs")
@@ -22,10 +25,32 @@ public class LogController {
     public Map<String, Object> getLogs(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size,
-            @RequestParam(required = false) String search) {
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
+            @RequestParam(required = false) List<Integer> computerIds,
+            @RequestParam(required = false) List<Integer> userIds,
+            @RequestParam(required = false) List<Integer> appIds,
+            @RequestParam(required = false) List<Integer> eventIds,
+            @RequestParam(required = false) List<Integer> severityIds) {
 
         StringBuilder whereClause = new StringBuilder(" WHERE 1=1 ");
         List<Object> params = new ArrayList<>();
+
+        if (from != null) {
+            whereClause.append(" AND els.event_date >= ? ");
+            params.add(from);
+        }
+        if (to != null) {
+            whereClause.append(" AND els.event_date <= ? ");
+            params.add(to);
+        }
+
+        addInClause(whereClause, params, "els.computer_id", computerIds);
+        addInClause(whereClause, params, "els.user_id", userIds);
+        addInClause(whereClause, params, "els.app_id", appIds);
+        addInClause(whereClause, params, "els.event_id", eventIds);
+        addInClause(whereClause, params, "els.severity", severityIds);
 
         if (search != null && !search.isBlank()) {
             String searchPattern = "%" + search + "%";
@@ -82,5 +107,15 @@ public class LogController {
                 "size", size,
                 "totalPages", (int) Math.ceil((double) (totalRows != null ? totalRows : 0) / size)
         );
+    }
+
+    private void addInClause(StringBuilder where, List<Object> params, String columnName, List<Integer> ids) {
+        if (ids != null && !ids.isEmpty()) {
+            String placeholders = ids.stream()
+                    .map(id -> "?")
+                    .collect(Collectors.joining(","));
+            where.append(" AND ").append(columnName).append(" IN (").append(placeholders).append(") ");
+            params.addAll(ids);
+        }
     }
 }
