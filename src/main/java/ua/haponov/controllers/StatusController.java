@@ -1,4 +1,4 @@
-package ua.haponov;
+package ua.haponov.controllers;
 
 import lombok.Builder;
 import lombok.Data;
@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ua.haponov.LogMemoryAppender;
 
 import java.time.LocalDateTime;
 import java.util.List;

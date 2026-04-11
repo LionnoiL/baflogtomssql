@@ -1,4 +1,4 @@
-package ua.haponov;
+package ua.haponov.controllers;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
