@@ -86,11 +86,9 @@ public class LogService {
         if (search != null && !search.isBlank()) {
             String pattern = "%" + search + "%";
             where.append("""
-                    AND (els.comment LIKE ? OR els.data_info LIKE ? OR u.user_name LIKE ? 
-                    OR en.event_human_name LIKE ? OR c.computer_name LIKE ? 
-                    OR app.app_name LIKE ? OR m.metadata_name LIKE ?)
+                    AND (els.search_content LIKE ?)
                     """);
-            for (int i = 0; i < 7; i++) params.add(pattern);
+            params.add(pattern);
         }
     }
 

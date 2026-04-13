@@ -149,8 +149,8 @@ public class LogMigrationService {
                 """;
 
         String insertSql = """
-                INSERT INTO EventLogSync (row_id, event_date, user_id, event_id, computer_id, app_id, metadata_id, severity, comment, data_info)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO EventLogSync (row_id, event_date, user_id, event_id, computer_id, app_id, metadata_id, severity, comment, data_info, search_content)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
 
         try (Connection sqliteConn = DriverManager.getConnection("jdbc:sqlite:" + sqlitePath);
@@ -165,6 +165,8 @@ public class LogMigrationService {
             syncApplications(sqliteConn, mssqlConn);
             syncComputers(sqliteConn, mssqlConn);
             syncEventNames(sqliteConn, mssqlConn);
+
+            Map<Integer, String> metadataMap = getNameMap(mssqlConn, "Metadata", "metadata_id", "metadata_name");
 
             long lastRowId = getLastId(mssqlConn);
 
@@ -187,16 +189,31 @@ public class LogMigrationService {
                         if (count == 0) firstId = rowId;
                         lastId = rowId;
 
+                        int userId = rs.getInt("userCode");
+                        int eventId = rs.getInt("eventCode");
+                        int computerId = rs.getInt("computerCode");
+                        int appId = rs.getInt("appCode");
+                        int metadataId = rs.getInt("metadataCodes");
+                        String comment = rs.getString("comment");
+                        String dataInfo = rs.getString("dataPresentation");
+
+                        String searchContent = String.join(" ",
+                                metadataMap.getOrDefault(metadataId, ""),
+                                comment != null ? comment : "",
+                                dataInfo != null ? dataInfo : ""
+                        ).trim().replaceAll("\\s+", " ");
+
                         insertStmt.setLong(1, rowId);
                         insertStmt.setTimestamp(2, Timestamp.valueOf(convertTicks(rs.getLong("date"))));
-                        setOptionalInt(insertStmt, 3, rs.getInt("userCode"));
-                        setOptionalInt(insertStmt, 4, rs.getInt("eventCode"));
-                        setOptionalInt(insertStmt, 5, rs.getInt("computerCode"));
-                        setOptionalInt(insertStmt, 6, rs.getInt("appCode"));
-                        setOptionalInt(insertStmt, 7, rs.getInt("metadataCodes"));
+                        setOptionalInt(insertStmt, 3, userId);
+                        setOptionalInt(insertStmt, 4, eventId);
+                        setOptionalInt(insertStmt, 5, computerId);
+                        setOptionalInt(insertStmt, 6, appId);
+                        setOptionalInt(insertStmt, 7, metadataId);
                         insertStmt.setInt(8, rs.getInt("severity"));
-                        insertStmt.setString(9, rs.getString("comment"));
-                        insertStmt.setString(10, rs.getString("dataPresentation"));
+                        insertStmt.setString(9, comment);
+                        insertStmt.setString(10, dataInfo);
+                        insertStmt.setString(11, searchContent);
 
                         if (deleteAfterSync) {
                             syncedIds.add(rowId);
@@ -476,5 +493,16 @@ public class LogMigrationService {
             ResultSet rs = stmt.executeQuery("SELECT ISNULL(MAX(row_id), 0) FROM EventLogSync");
             return rs.next() ? rs.getLong(1) : 0;
         }
+    }
+
+    private Map<Integer, String> getNameMap(Connection conn, String table, String idCol, String nameCol) throws SQLException {
+        Map<Integer, String> map = new java.util.HashMap<>();
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT " + idCol + ", " + nameCol + " FROM " + table)) {
+            while (rs.next()) {
+                map.put(rs.getInt(1), rs.getString(2));
+            }
+        }
+        return map;
     }
 }

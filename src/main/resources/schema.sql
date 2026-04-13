@@ -13,7 +13,7 @@ CREATE TABLE Users
 (
     user_id   INT PRIMARY KEY,
     user_name NVARCHAR(255) NOT NULL,
-    uuid VARCHAR(36) UNIQUE NOT NULL
+    uuid      VARCHAR(36) UNIQUE NOT NULL
 );
 
 IF
@@ -38,7 +38,7 @@ CREATE TABLE Metadata
 (
     metadata_id   INT PRIMARY KEY,
     metadata_name NVARCHAR(255) NOT NULL,
-    uuid VARCHAR(36) UNIQUE NOT NULL
+    uuid          VARCHAR(36) UNIQUE NOT NULL
 );
 
 IF
@@ -51,27 +51,27 @@ CREATE TABLE EventNames
 );
 
 IF
-OBJECT_ID('SeverityLevels', 'U') IS NULL
-CREATE TABLE SeverityLevels
-(
-    severity_id    INT PRIMARY KEY, -- 0, 1, 2, 3
-    severity_name  NVARCHAR(50) NOT NULL,
-    severity_color VARCHAR(20)
-);
-
-IF
 OBJECT_ID('EventLogSync', 'U') IS NULL
 CREATE TABLE EventLogSync
 (
-    row_id      BIGINT PRIMARY KEY,
-    event_date  DATETIME2(3) NOT NULL,
-    user_id     INT,
-    event_id    INT,
-    computer_id INT,
-    app_id      INT,
-    metadata_id INT,
-    severity    INT,
-    comment     NVARCHAR(4000),
-    data_info   NVARCHAR(1000)
+    row_id         BIGINT,
+    event_date     DATETIME2(3) NOT NULL,
+    user_id        INT,
+    event_id       INT,
+    computer_id    INT,
+    app_id         INT,
+    metadata_id    INT,
+    severity       INT,
+    comment        NVARCHAR(4000),
+    data_info      NVARCHAR(1000),
+    search_content NVARCHAR(MAX),
+    CONSTRAINT PK_EventLogSync PRIMARY KEY CLUSTERED (row_id),
+
+    CONSTRAINT FK_EventLog_User FOREIGN KEY (user_id) REFERENCES Users (user_id),
+    CONSTRAINT FK_EventLog_Event FOREIGN KEY (event_id) REFERENCES EventNames (event_id),
+    CONSTRAINT FK_EventLog_Computer FOREIGN KEY (computer_id) REFERENCES Computers (computer_id),
+    CONSTRAINT FK_EventLog_App FOREIGN KEY (app_id) REFERENCES Applications (app_id),
+    CONSTRAINT FK_EventLog_Metadata FOREIGN KEY (metadata_id) REFERENCES Metadata (metadata_id),
+    CONSTRAINT FK_EventLog_Severity FOREIGN KEY (severity) REFERENCES SeverityLevels (severity_id)
 )
     WITH (DATA_COMPRESSION = PAGE);
