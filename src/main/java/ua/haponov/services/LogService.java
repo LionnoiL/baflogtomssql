@@ -31,7 +31,7 @@ public class LogService {
         String countSql = "SELECT COUNT(*) FROM EventLogSync els " + getJoins() + whereClause;
         Integer totalRows = jdbcTemplate.queryForObject(countSql, Integer.class, params.toArray());
 
-        String dataSql = "SELECT els.row_id as id, els.event_date as timestamp, els.comment as message, els.data_info, " +
+        String dataSql = "SELECT els.row_id as id, els.event_date as timestamp, els.comment as message, els.data_info as dataInfo, " +
                 "u.user_name as userName, en.event_human_name as eventName, c.computer_name as computerName, " +
                 "app.app_name as applicationName, m.metadata_name as metadataName, sl.severity_name as severityName, sl.severity_color as severityColor " +
                 "FROM EventLogSync els " + getJoins() + whereClause +

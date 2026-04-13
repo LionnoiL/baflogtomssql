@@ -16,5 +16,6 @@ public class Log {
     private String computerName;
     private String eventName;
     private String userName;
+    private String dataInfo;
 
 }
