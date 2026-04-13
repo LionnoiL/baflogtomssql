@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Просмотр логов</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body, html {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .wrapper {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        #sidebar {
+            min-width: 280px;
+            max-width: 280px;
+            background: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        #content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .filter-header {
+            padding: 1rem;
+            background: #fff;
+            border-bottom: 1px solid #dee2e6;
+            flex-shrink: 0;
+        }
+
+        .severity-dot {
+            height: 10px;
+            width: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        .table-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            border-top: 1px solid #dee2e6;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead th {
+            position: sticky;
+            top: 0;
+            background-color: #f8f9fa;
+            z-index: 1;
+            box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
+        }
+
+        .filter-toggle {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .filter-toggle label {
+            cursor: pointer;
+        }
+
+        .toggle-icon {
+            transition: transform 0.3s ease;
+            font-size: 0.8rem;
+        }
+
+        .filter-toggle[aria-expanded="false"] .toggle-icon {
+            transform: rotate(-90deg);
+        }
+
+        .col-date {
+            width: 200px;
+            min-width: 170px;
+            white-space: nowrap;
+        }
+
+        .col-event {
+            width: 200px;
+            min-width: 170px;
+            white-space: nowrap;
+        }
+
+        .col-computer{
+            width: 200px;
+            min-width: 170px;
+            white-space: nowrap;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <nav id="sidebar">
+        <h5>Фильтры</h5>
+        <hr>
+        <form th:action="@{/logs}" method="get" id="filterForm">
+
+            <div class="d-grid gap-2 mt-4 mb-2">
+                <button type="submit" class="btn btn-primary">Применить</button>
+                <button type="button" class="btn btn-outline-danger" onclick="clearFilters()">Сбросить фильтры</button>
+            </div>
+
+
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center filter-toggle" data-bs-toggle="collapse" data-bs-target="#collapseLevels" aria-expanded="true">
+                    <label class="form-label fw-bold mb-0">Уровни важности</label>
+                    <span class="toggle-icon text-muted">▼</span>
+                </div>
+                <div class="collapse show mt-2" id="collapseLevels">
+                    <div th:each="level : ${severityLevels}" class="form-check">
+                        <input class="form-check-input" type="checkbox" name="levels"
+                               th:value="${level.id}" th:id="'lvl-' + ${level.id}"
+                               th:checked="${levels != null and #lists.contains(levels, level.id)}">
+                        <label class="form-check-label" th:for="'lvl-' + ${level.id}">
+                            <span class="severity-dot" th:style="'background-color:' + ${level.color}"></span>
+                            <span th:text="${level.name}">Severity</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center filter-toggle" data-bs-toggle="collapse" data-bs-target="#collapseMetadata" aria-expanded="true">
+                    <label class="form-label fw-bold mb-0">Метаданные</label>
+                    <span class="toggle-icon text-muted">▼</span>
+                </div>
+                <div class="collapse show mt-2" id="collapseMetadata">
+                    <div class="form-check" th:each="item : ${metadataSources}">
+                        <input class="form-check-input" type="checkbox" name="metadata"
+                               th:value="${item.id}" th:id="'metadata-item-' + ${item.id}"
+                               th:checked="${metadata != null and #lists.contains(metadata, item.id)}">
+                        <label class="form-check-label" th:for="'metadata-item-' + ${item.id}" th:text="${item.name}">item</label>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center filter-toggle" data-bs-toggle="collapse" data-bs-target="#collapseUsers" aria-expanded="true">
+                    <label class="form-label fw-bold mb-0">Пользователи</label>
+                    <span class="toggle-icon text-muted">▼</span>
+                </div>
+                <div class="collapse show mt-2" id="collapseUsers">
+                    <div class="form-check" th:each="user : ${userSources}">
+                        <input class="form-check-input" type="checkbox" name="users"
+                               th:value="${user.id}" th:id="'user-' + ${user.id}"
+                               th:checked="${users != null and #lists.contains(users, user.id)}">
+                        <label class="form-check-label" th:for="'user-' + ${user.id}" th:text="${user.name}">user</label>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center filter-toggle" data-bs-toggle="collapse" data-bs-target="#collapseEvents" aria-expanded="true">
+                    <label class="form-label fw-bold mb-0">События</label>
+                    <span class="toggle-icon text-muted">▼</span>
+                </div>
+                <div class="collapse mt-2" id="collapseEvents">
+                    <div class="form-check" th:each="event : ${eventSources}">
+                        <input class="form-check-input" type="checkbox" name="events"
+                               th:value="${event.id}" th:id="'event-' + ${event.id}"
+                               th:checked="${events != null and #lists.contains(events, event.id)}">
+                        <label class="form-check-label" th:for="'event-' + ${event.id}" th:text="${event.name}">event</label>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center filter-toggle" data-bs-toggle="collapse" data-bs-target="#collapseSources" aria-expanded="true">
+                    <label class="form-label fw-bold mb-0">Источники</label>
+                    <span class="toggle-icon text-muted">▼</span>
+                </div>
+                <div class="collapse mt-2" id="collapseSources">
+                    <div class="form-check" th:each="app : ${appSources}">
+                        <input class="form-check-input" type="checkbox" name="sources"
+                               th:value="${app.id}" th:id="'app-' + ${app.id}"
+                               th:checked="${sources != null and #lists.contains(sources, app.id)}">
+                        <label class="form-check-label" th:for="'app-' + ${app.id}" th:text="${app.name}">Source</label>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center filter-toggle" data-bs-toggle="collapse" data-bs-target="#collapseComputers" aria-expanded="true">
+                    <label class="form-label fw-bold mb-0">Компьютеры</label>
+                    <span class="toggle-icon text-muted">▼</span>
+                </div>
+                <div class="collapse mt-2" id="collapseComputers">
+                    <div class="form-check" th:each="computer : ${computerSources}">
+                        <input class="form-check-input" type="checkbox" name="computers"
+                               th:value="${computer.id}" th:id="'computer-' + ${computer.id}"
+                               th:checked="${computers != null and #lists.contains(computers, computer.id)}">
+                        <label class="form-check-label" th:for="'computer-' + ${computer.id}" th:text="${computer.name}">computer</label>
+                    </div>
+                </div>
+            </div>
+
+
+        </form>
+    </nav>
+
+    <main id="content">
+        <header class="filter-header">
+            <div class="row g-3 align-items-center">
+                <div class="col-auto">
+                    <label for="dateFrom" class="col-form-label">С:</label>
+                </div>
+                <div class="col-auto">
+                    <input type="datetime-local" id="dateFrom" name="from"
+                           class="form-control form-control-sm" th:value="${from}">
+                </div>
+                <div class="col-auto">
+                    <label for="dateTo" class="col-form-label">По:</label>
+                </div>
+                <div class="col-auto">
+                    <input type="datetime-local" id="dateTo" name="to"
+                           class="form-control form-control-sm" th:value="${to}">
+                </div>
+                <div class="col">
+                    <div class="input-group input-group-sm">
+                        <input type="text" id="searchInput" name="search" class="form-control"
+                               placeholder="Поиск по наименованию / тексту сообщения..." th:value="${search}">
+                        <button class="btn btn-outline-secondary" type="button" id="clearSearchBtn" title="Очистить поиск">
+                            &times;
+                        </button>
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" form="filterForm" class="btn btn-sm btn-outline-secondary">Найти</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="table-container">
+            <table class="table mb-0">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th class="col-date">Дата</th>
+                    <th>Уровень</th>
+                    <th class="col-event">Событие</th>
+                    <th>Источник</th>
+                    <th>Пользователь</th>
+                    <th class="col-computer">Компьютер</th>
+                    <th>Метаданные</th>
+                    <th>Комментарий</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="log : ${logs}">
+                    <td th:text="${log.id}">1</td>
+                    <td th:text="${#temporals.format(log.timestamp, 'yyyy-MM-dd HH:mm:ss')}">2024-01-01</td>
+                    <td th:text="${log.severityName}">INFO</td>
+                    <td th:text="${log.eventName}">Event Name</td>
+                    <td th:text="${log.applicationName}">App</td>
+                    <td th:text="${log.userName}">User</td>
+                    <td th:text="${log.computerName}">Компьютер</td>
+                    <td th:text="${log.metadataName}">Метаданные</td>
+                    <td th:text="${log.message}">Log Message</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <footer class="p-3 bg-light border-top">
+            <nav aria-label="Page navigation">
+                <ul class="pagination pagination-sm mb-0 justify-content-center" th:if="${totalPages > 0}">
+
+                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                        <a class="page-link" href="#" th:onclick="'changePage(0)'" title="В начало">&laquo;</a>
+                    </li>
+
+                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                        <a class="page-link" href="#" th:onclick="'changePage(' + (${currentPage} - 1) + ')'">Назад</a>
+                    </li>
+
+                    <li th:each="i : ${#numbers.sequence(
+                currentPage > 2 ? currentPage - 2 : 0,
+                currentPage + 2 < totalPages ? currentPage + 2 : totalPages - 1
+            )}"
+                        class="page-item" th:classappend="${i == currentPage} ? 'active'">
+                        <a class="page-link" href="#" th:text="${i + 1}" th:onclick="'changePage(' + ${i} + ')'">1</a>
+                    </li>
+
+                    <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                        <a class="page-link" href="#" th:onclick="'changePage(' + (${currentPage} + 1) + ')'">Вперед</a>
+                    </li>
+
+                    <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                        <a class="page-link" href="#" th:onclick="'changePage(' + (${totalPages} - 1) + ')'" title="В конец">&raquo;</a>
+                    </li>
+
+                </ul>
+            </nav>
+        </footer>
+
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+
+    function clearFilters() {
+        const form = document.getElementById('filterForm');
+        window.location.href = form.action;
+    }
+
+    document.getElementById('clearSearchBtn').addEventListener('click', function() {
+        const searchInput = document.getElementById('searchInput');
+
+        if (!searchInput.value) return;
+
+        searchInput.value = '';
+
+        document.getElementById('filterForm').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    });
+
+    function changePage(pageNumber) {
+        if (pageNumber < 0) return;
+        const form = document.getElementById('filterForm');
+        submitForm(form, pageNumber);
+    }
+
+    document.getElementById('filterForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        submitForm(e.target, 0);
+    });
+
+    function submitForm(form, page) {
+        const formData = new FormData(form);
+
+        const dateFrom = document.getElementById('dateFrom');
+        const dateTo = document.getElementById('dateTo');
+        const search = document.querySelector('input[name="search"]');
+
+        if (dateFrom && dateFrom.value) formData.append('from', dateFrom.value);
+        if (dateTo && dateTo.value) formData.append('to', dateTo.value);
+        if (search && search.value) formData.append('search', search.value);
+
+        const params = new URLSearchParams();
+        const grouped = {};
+
+        for (const [key, value] of formData.entries()) {
+            if (value) {
+                if (!grouped[key]) grouped[key] = [];
+                grouped[key].push(value);
+            }
+        }
+
+        for (const key in grouped) {
+            params.set(key, grouped[key].join(','));
+        }
+
+        params.set('page', page);
+        window.location.href = form.action + '?' + params.toString();
+    }
+
+</script>
+
+</body>
+</html>
