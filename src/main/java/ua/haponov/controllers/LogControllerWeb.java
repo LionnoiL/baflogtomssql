@@ -48,7 +48,9 @@ public class LogControllerWeb {
         String guidSearch = isGuid(search) ? search : null;
         String textSearch = !isGuid(search) ? search : null;
 
-        Map<String, Object> logsData = logService.getLogsPaged(page, size, guidSearch, textSearch, from, to, computers, users, sources, events, levels, metadata);
+        Map<String, Object> logsData = logService.getLogsPaged(
+                page, size, guidSearch, textSearch, from, to, computers,
+                users, sources, events, levels, metadata);
 
         model.addAttribute("severityLevels", severityLevels);
         model.addAttribute("appSources", appSources);
