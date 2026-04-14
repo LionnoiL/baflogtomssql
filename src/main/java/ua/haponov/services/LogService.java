@@ -19,14 +19,14 @@ public class LogService {
     private final JdbcTemplate jdbcTemplate;
 
     public Map<String, Object> getLogsPaged(
-            int page, int size, String search, LocalDateTime from, LocalDateTime to,
+            int page, int size, String guid, String search, LocalDateTime from, LocalDateTime to,
             List<Integer> computerIds, List<Integer> userIds, List<Integer> appIds,
             List<Integer> eventIds, List<Integer> severityIds, List<Integer> metadataIds) {
 
         StringBuilder whereClause = new StringBuilder(" WHERE 1=1 ");
         List<Object> params = new ArrayList<>();
 
-        buildWhereClause(whereClause, params, search, from, to, computerIds, userIds, appIds, eventIds, severityIds, metadataIds);
+        buildWhereClause(whereClause, params, guid, search, from, to, computerIds, userIds, appIds, eventIds, severityIds, metadataIds);
 
         String countSql = "SELECT COUNT(*) FROM EventLogSync els " + getJoins() + whereClause;
         Integer totalRows = jdbcTemplate.queryForObject(countSql, Integer.class, params.toArray());
@@ -62,11 +62,16 @@ public class LogService {
                 """;
     }
 
-    private void buildWhereClause(StringBuilder where, List<Object> params, String search,
+    private void buildWhereClause(StringBuilder where, List<Object> params, String guid, String search,
                                   LocalDateTime from, LocalDateTime to,
                                   List<Integer> computerIds, List<Integer> userIds,
                                   List<Integer> appIds, List<Integer> eventIds,
                                   List<Integer> severityIds, List<Integer> metadataIds) {
+
+        if (guid != null && !guid.isBlank()) {
+            where.append(" AND els.data = ? ");
+            params.add(guid);
+        }
         if (from != null) {
             where.append(" AND els.event_date >= ? ");
             params.add(from);

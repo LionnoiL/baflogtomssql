@@ -24,6 +24,7 @@ public class LogController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size,
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) String guid,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
             @RequestParam(required = false) List<Integer> computerIds,
@@ -33,7 +34,7 @@ public class LogController {
             @RequestParam(required = false) List<Integer> severityIds,
             @RequestParam(required = false) List<Integer> metadataIds) {
 
-        return logService.getLogsPaged(page, size, search, from, to,
+        return logService.getLogsPaged(page, size, guid, search, from, to,
                 computerIds, userIds, appIds, eventIds, severityIds, metadataIds);
     }
 }

@@ -143,14 +143,17 @@ public class LogMigrationService {
 
         String selectSql = """
                   SELECT el.rowID, el.date, el.userCode, el.eventCode, el.computerCode, el.appCode,
-                      el.comment, el.severity, el.dataPresentation, el.metadataCodes
+                      el.comment, el.severity, el.dataPresentation, el.metadataCodes, el.data, el.transactionDate,
+                      el.transactionID, el.session
                   FROM EventLog el
                   WHERE el.rowID > ? ORDER BY el.rowID ASC LIMIT ?
                 """;
 
         String insertSql = """
-                INSERT INTO EventLogSync (row_id, event_date, user_id, event_id, computer_id, app_id, metadata_id, severity, comment, data_info, search_content)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO EventLogSync (row_id, event_date, user_id, event_id, computer_id, app_id, metadata_id,
+                                          severity, comment, data_info, search_content, data, transaction_date,
+                                          transaction_id, session_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
 
         try (Connection sqliteConn = DriverManager.getConnection("jdbc:sqlite:" + sqlitePath);
@@ -214,6 +217,10 @@ public class LogMigrationService {
                         insertStmt.setString(9, comment);
                         insertStmt.setString(10, dataInfo);
                         insertStmt.setString(11, searchContent);
+                        insertStmt.setString(12, format1CGuid(rs.getString("data")));
+                        insertStmt.setTimestamp(13, Timestamp.valueOf(convertTicks(rs.getLong("transactionDate"))));
+                        insertStmt.setInt(14, rs.getInt("transactionID"));
+                        insertStmt.setInt(15, rs.getInt("session"));
 
                         if (deleteAfterSync) {
                             syncedIds.add(rowId);
@@ -493,6 +500,26 @@ public class LogMigrationService {
             ResultSet rs = stmt.executeQuery("SELECT ISNULL(MAX(row_id), 0) FROM EventLogSync");
             return rs.next() ? rs.getLong(1) : 0;
         }
+    }
+
+    /**
+     * Преобразует UUID из формата SQLite журнала регистрации 1С
+     * в стандартный строковый GUID с дефисами.
+     */
+    private String format1CGuid(String sqliteGuid) {
+        String rawGuid = sqliteGuid.contains(":") ? sqliteGuid.split(":")[1] : sqliteGuid;
+
+        if (rawGuid == null || rawGuid.length() != 32) {
+            return sqliteGuid;
+        }
+
+        String part1 = rawGuid.substring(24, 32);
+        String part2 = rawGuid.substring(20, 24);
+        String part3 = rawGuid.substring(16, 20);
+        String part4 = rawGuid.substring(0, 4);
+        String part5 = rawGuid.substring(4, 16);
+
+        return part1 + "-" + part2 + "-" + part3 + "-" + part4 + "-" + part5;
     }
 
     private Map<Integer, String> getNameMap(Connection conn, String table, String idCol, String nameCol) throws SQLException {

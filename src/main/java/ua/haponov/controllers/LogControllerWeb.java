@@ -45,7 +45,10 @@ public class LogControllerWeb {
         List<Metadata> metadataSources = dictionaryService.getMetadata();
         List<User> userSources = dictionaryService.getUsers();
 
-        Map<String, Object> logsData = logService.getLogsPaged(page, size, search, from, to, computers, users, sources, events, levels, metadata);
+        String guidSearch = isGuid(search) ? search : null;
+        String textSearch = !isGuid(search) ? search : null;
+
+        Map<String, Object> logsData = logService.getLogsPaged(page, size, guidSearch, textSearch, from, to, computers, users, sources, events, levels, metadata);
 
         model.addAttribute("severityLevels", severityLevels);
         model.addAttribute("appSources", appSources);
@@ -69,5 +72,17 @@ public class LogControllerWeb {
         model.addAttribute("totalPages", logsData.get("totalPages"));
 
         return "logs";
+    }
+
+    private boolean isGuid(String search) {
+        if (search == null || search.isBlank()) {
+            return false;
+        }
+        try {
+            java.util.UUID.fromString(search);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 }

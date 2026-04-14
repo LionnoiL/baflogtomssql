@@ -56,6 +56,9 @@ CREATE TABLE EventLogSync
 (
     row_id         BIGINT,
     event_date     DATETIME2(3) NOT NULL,
+    transaction_date     DATETIME2(3) NOT NULL,
+    transaction_id        INT,
+    session_id        INT,
     user_id        INT,
     event_id       INT,
     computer_id    INT,
@@ -64,6 +67,7 @@ CREATE TABLE EventLogSync
     severity       INT,
     comment        NVARCHAR(4000),
     data_info      NVARCHAR(1000),
+    data           NVARCHAR(4000),
     search_content NVARCHAR(MAX),
     CONSTRAINT PK_EventLogSync PRIMARY KEY CLUSTERED (row_id),
 
