@@ -11,6 +11,13 @@
             overflow: hidden;
         }
 
+        h1 {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 24px;
+            color: #333;
+        }
+
         .wrapper {
             display: flex;
             flex-direction: column;
@@ -105,7 +112,7 @@
             white-space: nowrap;
         }
 
-        .col-computer{
+        .col-computer {
             width: 200px;
             min-width: 170px;
             white-space: nowrap;
@@ -193,7 +200,7 @@
             top: 0;
             background-color: #f8f9fa;
             z-index: 10;
-            box-shadow: 0 1px 0 rgba(0,0,0,0.1);
+            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
         }
 
         table {
@@ -207,18 +214,33 @@
 
 <div class="wrapper d-flex flex-column">
 
+    <h1>Анализ журнала регистрации</h1>
     <ul class="nav nav-tabs" id="myTab" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="log-tab" data-bs-toggle="tab" data-bs-target="#log" type="button" role="tab" aria-controls="log" aria-selected="true">Логи</button>
+            <button class="nav-link active" id="log-tab" data-bs-toggle="tab" data-bs-target="#log" type="button"
+                    role="tab" aria-controls="log" aria-selected="true">Логи
+            </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="options-tab" data-bs-toggle="tab" data-bs-target="#options" type="button" role="tab" aria-controls="options" aria-selected="false">Настройки</button>
+            <button class="nav-link" id="options-tab" data-bs-toggle="tab" data-bs-target="#options" type="button"
+                    role="tab" aria-controls="options" aria-selected="false">Настройки
+            </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button" role="tab" aria-controls="reports" aria-selected="false">Отчеты</button>
+            <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button"
+                    role="tab" aria-controls="reports" aria-selected="false">Отчеты
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="applog-tab" data-bs-toggle="tab" data-bs-target="#applog" type="button"
+                    role="tab" aria-controls="applog" aria-selected="false">Лог сервиса
+            </button>
         </li>
     </ul>
+
+
     <div class="tab-content flex-grow-1 overflow-hidden" id="myTabContent">
+
         <div class="tab-pane fade show active" id="log" role="tabpanel" aria-labelledby="log-tab">
 
             <div class="d-flex h-100">
@@ -230,12 +252,15 @@
 
                         <div class="d-grid gap-2 mt-4 mb-2">
                             <button type="submit" class="btn btn-primary">Применить</button>
-                            <button type="button" class="btn btn-outline-danger" onclick="clearFilters()">Сбросить фильтры</button>
+                            <button type="button" class="btn btn-outline-danger" onclick="clearFilters()">Сбросить
+                                фильтры
+                            </button>
                         </div>
 
 
                         <div class="mb-4">
-                            <div class="d-flex justify-content-between align-items-center filter-toggle" data-bs-toggle="collapse" data-bs-target="#collapseLevels" aria-expanded="true">
+                            <div class="d-flex justify-content-between align-items-center filter-toggle"
+                                 data-bs-toggle="collapse" data-bs-target="#collapseLevels" aria-expanded="true">
                                 <label class="form-label fw-bold mb-0">Уровни важности</label>
                                 <span class="toggle-icon text-muted">▼</span>
                             </div>
@@ -245,7 +270,8 @@
                                            th:value="${level.id}" th:id="'lvl-' + ${level.id}"
                                            th:checked="${levels != null and #lists.contains(levels, level.id)}">
                                     <label class="form-check-label" th:for="'lvl-' + ${level.id}">
-                                        <span class="severity-dot" th:style="'background-color:' + ${level.color}"></span>
+                                        <span class="severity-dot"
+                                              th:style="'background-color:' + ${level.color}"></span>
                                         <span th:text="${level.name}">Severity</span>
                                     </label>
                                 </div>
@@ -254,7 +280,8 @@
 
 
                         <div class="mb-4">
-                            <div class="d-flex justify-content-between align-items-center filter-toggle" data-bs-toggle="collapse" data-bs-target="#collapseMetadata" aria-expanded="true">
+                            <div class="d-flex justify-content-between align-items-center filter-toggle"
+                                 data-bs-toggle="collapse" data-bs-target="#collapseMetadata" aria-expanded="true">
                                 <label class="form-label fw-bold mb-0">Метаданные</label>
                                 <span class="toggle-icon text-muted">▼</span>
                             </div>
@@ -263,14 +290,16 @@
                                     <input class="form-check-input" type="checkbox" name="metadata"
                                            th:value="${item.id}" th:id="'metadata-item-' + ${item.id}"
                                            th:checked="${metadata != null and #lists.contains(metadata, item.id)}">
-                                    <label class="form-check-label" th:for="'metadata-item-' + ${item.id}" th:text="${item.name}">item</label>
+                                    <label class="form-check-label" th:for="'metadata-item-' + ${item.id}"
+                                           th:text="${item.name}">item</label>
                                 </div>
                             </div>
                         </div>
 
 
                         <div class="mb-4">
-                            <div class="d-flex justify-content-between align-items-center filter-toggle" data-bs-toggle="collapse" data-bs-target="#collapseUsers" aria-expanded="true">
+                            <div class="d-flex justify-content-between align-items-center filter-toggle"
+                                 data-bs-toggle="collapse" data-bs-target="#collapseUsers" aria-expanded="true">
                                 <label class="form-label fw-bold mb-0">Пользователи</label>
                                 <span class="toggle-icon text-muted">▼</span>
                             </div>
@@ -279,14 +308,16 @@
                                     <input class="form-check-input" type="checkbox" name="users"
                                            th:value="${user.id}" th:id="'user-' + ${user.id}"
                                            th:checked="${users != null and #lists.contains(users, user.id)}">
-                                    <label class="form-check-label" th:for="'user-' + ${user.id}" th:text="${user.name}">user</label>
+                                    <label class="form-check-label" th:for="'user-' + ${user.id}"
+                                           th:text="${user.name}">user</label>
                                 </div>
                             </div>
                         </div>
 
 
                         <div class="mb-4">
-                            <div class="d-flex justify-content-between align-items-center filter-toggle" data-bs-toggle="collapse" data-bs-target="#collapseEvents" aria-expanded="true">
+                            <div class="d-flex justify-content-between align-items-center filter-toggle"
+                                 data-bs-toggle="collapse" data-bs-target="#collapseEvents" aria-expanded="true">
                                 <label class="form-label fw-bold mb-0">События</label>
                                 <span class="toggle-icon text-muted">▼</span>
                             </div>
@@ -295,14 +326,16 @@
                                     <input class="form-check-input" type="checkbox" name="events"
                                            th:value="${event.id}" th:id="'event-' + ${event.id}"
                                            th:checked="${events != null and #lists.contains(events, event.id)}">
-                                    <label class="form-check-label" th:for="'event-' + ${event.id}" th:text="${event.name}">event</label>
+                                    <label class="form-check-label" th:for="'event-' + ${event.id}"
+                                           th:text="${event.name}">event</label>
                                 </div>
                             </div>
                         </div>
 
 
                         <div class="mb-4">
-                            <div class="d-flex justify-content-between align-items-center filter-toggle" data-bs-toggle="collapse" data-bs-target="#collapseSources" aria-expanded="true">
+                            <div class="d-flex justify-content-between align-items-center filter-toggle"
+                                 data-bs-toggle="collapse" data-bs-target="#collapseSources" aria-expanded="true">
                                 <label class="form-label fw-bold mb-0">Источники</label>
                                 <span class="toggle-icon text-muted">▼</span>
                             </div>
@@ -318,7 +351,8 @@
 
 
                         <div class="mb-4">
-                            <div class="d-flex justify-content-between align-items-center filter-toggle" data-bs-toggle="collapse" data-bs-target="#collapseComputers" aria-expanded="true">
+                            <div class="d-flex justify-content-between align-items-center filter-toggle"
+                                 data-bs-toggle="collapse" data-bs-target="#collapseComputers" aria-expanded="true">
                                 <label class="form-label fw-bold mb-0">Компьютеры</label>
                                 <span class="toggle-icon text-muted">▼</span>
                             </div>
@@ -327,7 +361,8 @@
                                     <input class="form-check-input" type="checkbox" name="computers"
                                            th:value="${computer.id}" th:id="'computer-' + ${computer.id}"
                                            th:checked="${computers != null and #lists.contains(computers, computer.id)}">
-                                    <label class="form-check-label" th:for="'computer-' + ${computer.id}" th:text="${computer.name}">computer</label>
+                                    <label class="form-check-label" th:for="'computer-' + ${computer.id}"
+                                           th:text="${computer.name}">computer</label>
                                 </div>
                             </div>
                         </div>
@@ -359,14 +394,17 @@
                             <div class="col">
                                 <div class="input-group input-group-sm">
                                     <input type="text" id="searchInput" name="search" class="form-control"
-                                           placeholder="Поиск по наименованию / тексту сообщения / UUID ..." th:value="${search}">
-                                    <button class="btn btn-outline-secondary" type="button" id="clearSearchBtn" title="Очистить поиск">
+                                           placeholder="Поиск по наименованию / тексту сообщения / UUID ..."
+                                           th:value="${search}">
+                                    <button class="btn btn-outline-secondary" type="button" id="clearSearchBtn"
+                                            title="Очистить поиск">
                                         &times;
                                     </button>
                                 </div>
                             </div>
                             <div class="col-auto">
-                                <button type="submit" form="filterForm" class="btn btn-sm btn-outline-secondary">Найти</button>
+                                <button type="submit" form="filterForm" class="btn btn-sm btn-outline-secondary">Найти
+                                </button>
                             </div>
                         </div>
                     </header>
@@ -409,11 +447,13 @@
                             <ul class="pagination pagination-sm mb-0 justify-content-center" th:if="${totalPages > 0}">
 
                                 <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                                    <a class="page-link" href="#" th:onclick="'changePage(0)'" title="В начало">&laquo;</a>
+                                    <a class="page-link" href="#" th:onclick="'changePage(0)'"
+                                       title="В начало">&laquo;</a>
                                 </li>
 
                                 <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                                    <a class="page-link" href="#" th:onclick="'changePage(' + (${currentPage} - 1) + ')'">Назад</a>
+                                    <a class="page-link" href="#"
+                                       th:onclick="'changePage(' + (${currentPage} - 1) + ')'">Назад</a>
                                 </li>
 
                                 <li th:each="i : ${#numbers.sequence(
@@ -421,15 +461,18 @@
                                         currentPage + 2 < totalPages ? currentPage + 2 : totalPages - 1
                                     )}"
                                     class="page-item" th:classappend="${i == currentPage} ? 'active'">
-                                    <a class="page-link" href="#" th:text="${i + 1}" th:onclick="'changePage(' + ${i} + ')'">1</a>
+                                    <a class="page-link" href="#" th:text="${i + 1}"
+                                       th:onclick="'changePage(' + ${i} + ')'">1</a>
                                 </li>
 
                                 <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
-                                    <a class="page-link" href="#" th:onclick="'changePage(' + (${currentPage} + 1) + ')'">Вперед</a>
+                                    <a class="page-link" href="#"
+                                       th:onclick="'changePage(' + (${currentPage} + 1) + ')'">Вперед</a>
                                 </li>
 
                                 <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
-                                    <a class="page-link" href="#" th:onclick="'changePage(' + (${totalPages} - 1) + ')'" title="В конец">&raquo;</a>
+                                    <a class="page-link" href="#" th:onclick="'changePage(' + (${totalPages} - 1) + ')'"
+                                       title="В конец">&raquo;</a>
                                 </li>
 
                             </ul>
@@ -448,6 +491,23 @@
         <div class="tab-pane fade" id="reports" role="tabpanel" aria-labelledby="reports-tab">
 
         </div>
+
+        <div class="tab-pane fade" id="applog" role="tabpanel" aria-labelledby="applog-tab">
+            <div class="table-container w-100">
+                <table class="table table-sm table-hover mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th style="width: 180px;">Время</th>
+                        <th style="width: 100px;">Уровень</th>
+                        <th>Сообщение</th>
+                    </tr>
+                    </thead>
+                    <tbody id="appLogTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 
 
@@ -463,14 +523,14 @@
         window.location.href = form.action;
     }
 
-    document.getElementById('clearSearchBtn').addEventListener('click', function() {
+    document.getElementById('clearSearchBtn').addEventListener('click', function () {
         const searchInput = document.getElementById('searchInput');
 
         if (!searchInput.value) return;
 
         searchInput.value = '';
 
-        document.getElementById('filterForm').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        document.getElementById('filterForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true}));
     });
 
     function changePage(pageNumber) {
@@ -533,10 +593,46 @@
         onDragEnd: function (sizes) {
             localStorage.setItem('split-sizes', JSON.stringify(sizes));
         },
-        onDrag: function() {
+        onDrag: function () {
             window.dispatchEvent(new Event('resize'));
         }
     });
+
+
+
+    function updateAppLogs() {
+        const appLogTab = document.getElementById('applog');
+        if (!appLogTab.classList.contains('active')) return;
+
+        fetch('/api/status')
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById('appLogTableBody');
+                if (!data.recentLogs) return;
+
+                tbody.innerHTML = data.recentLogs.map(log => {
+                    const date = new Date(log.timestamp).toLocaleString();
+                    let badgeClass = 'bg-secondary';
+                    if (log.level === 'ERROR') badgeClass = 'bg-danger';
+                    else if (log.level === 'WARN') badgeClass = 'bg-warning text-dark';
+                    else if (log.level === 'INFO') badgeClass = 'bg-info text-dark';
+
+                    return `
+                            <tr>
+                                <td class="text-muted small">${date}</td>
+                                <td><span class="badge ${badgeClass}">${log.level}</span></td>
+                                <td class="text-break">${log.message}</td>
+                            </tr>
+                        `;
+                }).join('');
+            })
+            .catch(error => console.error('Ошибка загрузки логов приложения:', error));
+    }
+
+    setInterval(updateAppLogs, 3000);
+    updateAppLogs();
+
+    document.getElementById('applog-tab').addEventListener('shown.bs.tab', updateAppLogs);
 
 </script>
 
