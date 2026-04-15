@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Просмотр логов</title>
+    <title th:text="#{page.title}">Просмотр логов</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body, html {
@@ -214,26 +214,26 @@
 
 <div class="wrapper d-flex flex-column">
 
-    <h1>Анализ журнала регистрации</h1>
+    <h1 th:text="#{page.header}">Анализ журнала регистрации</h1>
     <ul class="nav nav-tabs" id="myTab" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active" id="log-tab" data-bs-toggle="tab" data-bs-target="#log" type="button"
-                    role="tab" aria-controls="log" aria-selected="true">Логи
+                    role="tab" aria-controls="log" aria-selected="true" th:text="#{tab.log}">Журнал
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="options-tab" data-bs-toggle="tab" data-bs-target="#options" type="button"
-                    role="tab" aria-controls="options" aria-selected="false">Настройки
+                    role="tab" aria-controls="options" aria-selected="false" th:text="#{tab.options}">Настройки
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button"
-                    role="tab" aria-controls="reports" aria-selected="false">Отчеты
+                    role="tab" aria-controls="reports" aria-selected="false" th:text="#{tab.reports}">Отчеты
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="applog-tab" data-bs-toggle="tab" data-bs-target="#applog" type="button"
-                    role="tab" aria-controls="applog" aria-selected="false">Лог сервиса
+                    role="tab" aria-controls="applog" aria-selected="false" th:text="#{tab.applog}">Лог сервиса
             </button>
         </li>
     </ul>
@@ -246,13 +246,14 @@
             <div class="d-flex h-100">
 
                 <nav id="sidebar">
-                    <h5>Фильтры</h5>
+                    <h5 th:text="#{sidebar.filters}">Фильтры</h5>
                     <hr>
                     <form th:action="@{/logs}" method="get" id="filterForm">
 
                         <div class="d-grid gap-2 mt-4 mb-2">
-                            <button type="submit" class="btn btn-primary">Применить</button>
-                            <button type="button" class="btn btn-outline-danger" onclick="clearFilters()">Сбросить
+                            <button type="submit" class="btn btn-primary" th:text="#{sidebar.apply}">Применить</button>
+                            <button type="button" class="btn btn-outline-danger" onclick="clearFilters()"
+                                    th:text="#{sidebar.reset}">Сбросить
                                 фильтры
                             </button>
                         </div>
@@ -261,7 +262,8 @@
                         <div class="mb-4">
                             <div class="d-flex justify-content-between align-items-center filter-toggle"
                                  data-bs-toggle="collapse" data-bs-target="#collapseLevels" aria-expanded="true">
-                                <label class="form-label fw-bold mb-0">Уровни важности</label>
+                                <label class="form-label fw-bold mb-0" th:text="#{sidebar.severity}">Уровни
+                                    важности</label>
                                 <span class="toggle-icon text-muted">▼</span>
                             </div>
                             <div class="collapse show mt-2" id="collapseLevels">
@@ -282,7 +284,7 @@
                         <div class="mb-4">
                             <div class="d-flex justify-content-between align-items-center filter-toggle"
                                  data-bs-toggle="collapse" data-bs-target="#collapseMetadata" aria-expanded="true">
-                                <label class="form-label fw-bold mb-0">Метаданные</label>
+                                <label class="form-label fw-bold mb-0" th:text="#{sidebar.metadata}">Метаданные</label>
                                 <span class="toggle-icon text-muted">▼</span>
                             </div>
                             <div class="collapse show mt-2" id="collapseMetadata">
@@ -300,7 +302,7 @@
                         <div class="mb-4">
                             <div class="d-flex justify-content-between align-items-center filter-toggle"
                                  data-bs-toggle="collapse" data-bs-target="#collapseUsers" aria-expanded="true">
-                                <label class="form-label fw-bold mb-0">Пользователи</label>
+                                <label class="form-label fw-bold mb-0" th:text="#{sidebar.users}">Пользователи</label>
                                 <span class="toggle-icon text-muted">▼</span>
                             </div>
                             <div class="collapse show mt-2" id="collapseUsers">
@@ -318,7 +320,7 @@
                         <div class="mb-4">
                             <div class="d-flex justify-content-between align-items-center filter-toggle"
                                  data-bs-toggle="collapse" data-bs-target="#collapseEvents" aria-expanded="true">
-                                <label class="form-label fw-bold mb-0">События</label>
+                                <label class="form-label fw-bold mb-0" th:text="#{sidebar.events}">События</label>
                                 <span class="toggle-icon text-muted">▼</span>
                             </div>
                             <div class="collapse mt-2" id="collapseEvents">
@@ -336,7 +338,7 @@
                         <div class="mb-4">
                             <div class="d-flex justify-content-between align-items-center filter-toggle"
                                  data-bs-toggle="collapse" data-bs-target="#collapseSources" aria-expanded="true">
-                                <label class="form-label fw-bold mb-0">Источники</label>
+                                <label class="form-label fw-bold mb-0" th:text="#{sidebar.sources}">Источники</label>
                                 <span class="toggle-icon text-muted">▼</span>
                             </div>
                             <div class="collapse mt-2" id="collapseSources">
@@ -353,7 +355,7 @@
                         <div class="mb-4">
                             <div class="d-flex justify-content-between align-items-center filter-toggle"
                                  data-bs-toggle="collapse" data-bs-target="#collapseComputers" aria-expanded="true">
-                                <label class="form-label fw-bold mb-0">Компьютеры</label>
+                                <label class="form-label fw-bold mb-0" th:text="#{sidebar.computers}">Компьютеры</label>
                                 <span class="toggle-icon text-muted">▼</span>
                             </div>
                             <div class="collapse mt-2" id="collapseComputers">
@@ -378,14 +380,14 @@
                     <header class="filter-header mb-2">
                         <div class="row g-3 align-items-center">
                             <div class="col-auto">
-                                <label for="dateFrom" class="col-form-label">С:</label>
+                                <label for="dateFrom" class="col-form-label" th:text="#{filter.from}">С:</label>
                             </div>
                             <div class="col-auto">
                                 <input type="datetime-local" id="dateFrom" name="from"
                                        class="form-control form-control-sm" th:value="${from}">
                             </div>
                             <div class="col-auto">
-                                <label for="dateTo" class="col-form-label">По:</label>
+                                <label for="dateTo" class="col-form-label" th:text="#{filter.to}">По:</label>
                             </div>
                             <div class="col-auto">
                                 <input type="datetime-local" id="dateTo" name="to"
@@ -394,7 +396,7 @@
                             <div class="col">
                                 <div class="input-group input-group-sm">
                                     <input type="text" id="searchInput" name="search" class="form-control"
-                                           placeholder="Поиск по наименованию / тексту сообщения / UUID ..."
+                                           th:placeholder="#{filter.search.placeholder}"
                                            th:value="${search}">
                                     <button class="btn btn-outline-secondary" type="button" id="clearSearchBtn"
                                             title="Очистить поиск">
@@ -403,7 +405,8 @@
                                 </div>
                             </div>
                             <div class="col-auto">
-                                <button type="submit" form="filterForm" class="btn btn-sm btn-outline-secondary">Найти
+                                <button type="submit" form="filterForm" class="btn btn-sm btn-outline-secondary"
+                                        th:text="#{filter.find}">Найти
                                 </button>
                             </div>
                         </div>
@@ -413,16 +416,16 @@
                         <table class="table mb-0">
                             <thead>
                             <tr>
-                                <th>ID</th>
-                                <th class="col-date">Дата</th>
-                                <th>Уровень</th>
-                                <th class="col-event">Событие</th>
-                                <th>Источник</th>
-                                <th>Пользователь</th>
-                                <th class="col-computer">Компьютер</th>
-                                <th>Метаданные</th>
-                                <th>Данные</th>
-                                <th>Комментарий</th>
+                                <th th:text="#{table.id}">ID</th>
+                                <th class="col-date" th:text="#{table.date}">Дата</th>
+                                <th th:text="#{table.level}">Уровень</th>
+                                <th class="col-event" th:text="#{table.event}">Событие</th>
+                                <th th:text="#{table.source}">Источник</th>
+                                <th th:text="#{table.user}">Пользователь</th>
+                                <th class="col-computer" th:text="#{table.computer}">Компьютер</th>
+                                <th th:text="#{table.metadata}">Метаданные</th>
+                                <th th:text="#{table.data}">Данные</th>
+                                <th th:text="#{table.comment}">Комментарий</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -448,12 +451,13 @@
 
                                 <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
                                     <a class="page-link" href="#" th:onclick="'changePage(0)'"
-                                       title="В начало">&laquo;</a>
+                                       th:title="#{pagination.start}">&laquo;</a>
                                 </li>
 
                                 <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
                                     <a class="page-link" href="#"
-                                       th:onclick="'changePage(' + (${currentPage} - 1) + ')'">Назад</a>
+                                       th:onclick="'changePage(' + (${currentPage} - 1) + ')'"
+                                       th:text="#{pagination.back}">Назад</a>
                                 </li>
 
                                 <li th:each="i : ${#numbers.sequence(
@@ -467,12 +471,13 @@
 
                                 <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
                                     <a class="page-link" href="#"
-                                       th:onclick="'changePage(' + (${currentPage} + 1) + ')'">Вперед</a>
+                                       th:onclick="'changePage(' + (${currentPage} + 1) + ')'"
+                                       th:text="#{pagination.forward}">Вперед</a>
                                 </li>
 
                                 <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
                                     <a class="page-link" href="#" th:onclick="'changePage(' + (${totalPages} - 1) + ')'"
-                                       title="В конец">&raquo;</a>
+                                       th:title="#{pagination.end}">&raquo;</a>
                                 </li>
 
                             </ul>
@@ -486,7 +491,25 @@
 
         </div>
         <div class="tab-pane fade" id="options" role="tabpanel" aria-labelledby="options-tab">
-
+            <div class="p-4 w-100">
+                <h5 th:text="#{options.header}">Настройки интерфейса</h5>
+                <hr>
+                <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label" th:text="#{options.language}">Язык интерфейса</label>
+                    <div class="col-sm-10">
+                        <div class="btn-group" role="group" aria-label="Language switcher">
+                            <a th:href="@{/logs(lang='uk')}"
+                               class="btn"
+                               th:classappend="${#locale.language == 'uk'} ? 'btn-primary' : 'btn-outline-primary'"
+                               th:text="#{options.lang.uk}">Украинский</a>
+                            <a th:href="@{/logs(lang='ru')}"
+                               class="btn"
+                               th:classappend="${#locale.language == 'ru'} ? 'btn-primary' : 'btn-outline-primary'"
+                               th:text="#{options.lang.ru}">Русский</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="tab-pane fade" id="reports" role="tabpanel" aria-labelledby="reports-tab">
 
@@ -497,9 +520,9 @@
                 <table class="table table-sm table-hover mb-0">
                     <thead class="table-light">
                     <tr>
-                        <th style="width: 180px;">Время</th>
-                        <th style="width: 100px;">Уровень</th>
-                        <th>Сообщение</th>
+                        <th style="width: 180px;" th:text="#{applog.time}">Время</th>
+                        <th style="width: 100px;" th:text="#{applog.level}">Уровень</th>
+                        <th th:text="#{applog.message}">Сообщение</th>
                     </tr>
                     </thead>
                     <tbody id="appLogTableBody">
@@ -597,7 +620,6 @@
             window.dispatchEvent(new Event('resize'));
         }
     });
-
 
 
     function updateAppLogs() {

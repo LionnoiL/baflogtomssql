@@ -20,6 +20,10 @@ management:
       show-details: always
 
 spring:
+  messages:
+    basename: messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
   sql:
     init:
       mode: always
