@@ -20,9 +20,26 @@ public class LogService {
     private final JdbcTemplate jdbcTemplate;
 
     @Transactional
-    public int deleteLogsOlderThan(LocalDateTime date) {
+    public int deleteLogs(LocalDateTime date) {
         String sql = "DELETE FROM EventLogSync WHERE event_date <= ?";
         return jdbcTemplate.update(sql, date);
+    }
+
+    @Transactional
+    public int deleteLogs(LocalDateTime date, List<Integer> excludedEventIds) {
+        StringBuilder sql = new StringBuilder("DELETE FROM EventLogSync WHERE event_date <= ?");
+        List<Object> params = new ArrayList<>();
+        params.add(date);
+
+        if (excludedEventIds != null && !excludedEventIds.isEmpty()) {
+            String placeholders = excludedEventIds.stream()
+                    .map(id -> "?")
+                    .collect(Collectors.joining(","));
+            sql.append(" AND event_id NOT IN (").append(placeholders).append(")");
+            params.addAll(excludedEventIds);
+        }
+
+        return jdbcTemplate.update(sql.toString(), params.toArray());
     }
 
     @Transactional
