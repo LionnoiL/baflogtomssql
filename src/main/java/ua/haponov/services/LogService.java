@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ua.haponov.dto.Log;
 
 import java.time.LocalDateTime;
@@ -17,6 +18,26 @@ import java.util.stream.Collectors;
 public class LogService {
 
     private final JdbcTemplate jdbcTemplate;
+
+    @Transactional
+    public int deleteLogsOlderThan(LocalDateTime date) {
+        String sql = "DELETE FROM EventLogSync WHERE event_date <= ?";
+        return jdbcTemplate.update(sql, date);
+    }
+
+    @Transactional
+    public int deleteLogsByDateAndEvent(LocalDateTime date, Integer eventId) {
+        StringBuilder sql = new StringBuilder("DELETE FROM EventLogSync WHERE event_date <= ?");
+        List<Object> params = new ArrayList<>();
+        params.add(date);
+
+        if (eventId != null) {
+            sql.append(" AND event_id = ?");
+            params.add(eventId);
+        }
+
+        return jdbcTemplate.update(sql.toString(), params.toArray());
+    }
 
     public Map<String, Object> getLogsPaged(
             int page, int size, String guid, String search, LocalDateTime from, LocalDateTime to,
