@@ -139,7 +139,7 @@ public class LogMigrationService {
     @Scheduled(fixedDelayString = "${app.migration.interval-ms}")
     public void runMigration() {
 
-        log.info("Начало цикла миграции...");
+        log.info("Starting migration cycle...");
 
         String selectSql = """
                   SELECT el.rowID, el.date, el.userCode, el.eventCode, el.computerCode, el.appCode,
@@ -237,7 +237,7 @@ public class LogMigrationService {
                         mssqlConn.commit();
 
                         long duration = System.currentTimeMillis() - startTime;
-                        log.info("Успешно перенесено {} записей за {} мс (скорость: {} зап/сек).",
+                        log.info("Successfully transferred {} records in {} ms (speed: {} rec/sec).",
                                 count,
                                 duration,
                                 (count * 1000L / Math.max(duration, 1)));
@@ -251,7 +251,7 @@ public class LogMigrationService {
 
                                 int deletedCount = deleteStmt.executeUpdate();
                                 sqliteConn.commit();
-                                log.info("Очищено {} записей в SQLite диапазоном ID [{} - {}].", deletedCount, firstId, lastId);
+                                log.info("Cleared {} records in SQLite with ID range [{} - {}].", deletedCount, firstId, lastId);
 
                                 try (Statement stmt = sqliteConn.createStatement()) {
                                     stmt.execute("PRAGMA incremental_vacuum(100);");
@@ -267,7 +267,7 @@ public class LogMigrationService {
                         }
 
                     } else {
-                        log.info("Новых записей не обнаружено.");
+                        log.info("No new records found.");
                     }
                 } catch (Exception e) {
                     mssqlConn.rollback();
@@ -277,7 +277,7 @@ public class LogMigrationService {
                 }
             }
         } catch (SQLException e) {
-            log.error("Ошибка SQL при миграции: {}", e.getMessage());
+            log.error("SQL error during migration: {}", e.getMessage());
         }
     }
 
@@ -287,7 +287,7 @@ public class LogMigrationService {
             if (rs.next() && rs.getInt(1) != 2) { // 2 = INCREMENTAL
                 stmt.execute("PRAGMA auto_vacuum = INCREMENTAL;");
                 stmt.execute("VACUUM;");
-                log.info("SQLite переведен в режим INCREMENTAL auto-vacuum.");
+                log.info("SQLite switched to INCREMENTAL auto-vacuum mode.");
             }
         }
     }
@@ -328,7 +328,6 @@ public class LogMigrationService {
 
             if (count > 0) {
                 mergeStmt.executeBatch();
-                log.info("Синхронизировано метаданных: {}", count);
             }
         }
     }
@@ -361,7 +360,6 @@ public class LogMigrationService {
 
             if (count > 0) {
                 mergeStmt.executeBatch();
-                log.info("Синхронизировано пользователей: {}", count);
             }
         }
     }
@@ -400,7 +398,6 @@ public class LogMigrationService {
 
             if (count > 0) {
                 mergeStmt.executeBatch();
-                log.info("Синхронизировано приложений: {}", count);
             }
         }
     }
@@ -439,7 +436,6 @@ public class LogMigrationService {
 
             if (count > 0) {
                 mergeStmt.executeBatch();
-                log.info("Синхронизировано компьютеров: {}", count);
             }
         }
     }
@@ -480,7 +476,6 @@ public class LogMigrationService {
 
             if (count > 0) {
                 mergeStmt.executeBatch();
-                log.info("Синхронизировано кодов событий: {}", count);
             }
         }
     }
