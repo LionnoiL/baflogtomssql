@@ -50,6 +50,13 @@ CREATE TABLE EventNames
     event_human_name NVARCHAR(255)
 );
 
+IF OBJECT_ID('Settings', 'U') IS NULL
+CREATE TABLE Settings
+(
+    setting_key   NVARCHAR(100) PRIMARY KEY,
+    setting_value NVARCHAR(MAX)
+);
+
 IF
 OBJECT_ID('EventLogSync', 'U') IS NULL
 CREATE TABLE EventLogSync

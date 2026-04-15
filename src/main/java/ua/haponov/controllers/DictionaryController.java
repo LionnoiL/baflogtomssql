@@ -23,7 +23,7 @@ public class DictionaryController {
 
     @GetMapping("/event-names")
     public List<Map<String, Object>> getEventNames() {
-        return jdbcTemplate.queryForList("SELECT event_id, event_code, event_human_name FROM EventNames ORDER BY event_human_name");
+        return jdbcTemplate.queryForList("SELECT event_id, event_code, event_human_name FROM EventNames ORDER BY event_id");
     }
 
     @GetMapping("/computers")
