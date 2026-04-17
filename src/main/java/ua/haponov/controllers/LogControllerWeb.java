@@ -12,6 +12,7 @@ import ua.haponov.services.DictionaryService;
 import ua.haponov.services.LogService;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -44,6 +45,8 @@ public class LogControllerWeb {
         List<Event> eventSources = dictionaryService.getEventNames();
         List<Metadata> metadataSources = dictionaryService.getMetadata();
         List<User> userSources = dictionaryService.getUsers();
+
+        eventSources.sort(Comparator.comparing(Event::getName));
 
         String guidSearch = isGuid(search) ? search : null;
         String textSearch = !isGuid(search) ? search : null;
