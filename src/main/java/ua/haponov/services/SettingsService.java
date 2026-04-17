@@ -60,6 +60,10 @@ public class SettingsService {
         return Boolean.parseBoolean(getSetting("cleanup_enabled", "false"));
     }
 
+    public boolean isCleanupSQLiteEnabled() {
+        return Boolean.parseBoolean(getSetting("cleanup_sqlite_enabled", "false"));
+    }
+
     public int getCleanupDays() {
         return Integer.parseInt(getSetting("cleanup_days", "365"));
     }

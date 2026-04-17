@@ -409,7 +409,50 @@
                                         th:text="#{filter.find}">Найти
                                 </button>
                             </div>
+
+                            <div class="col-auto">
+                                <nav aria-label="Page navigation">
+                                    <ul class="pagination pagination-sm mb-0 justify-content-center" th:if="${totalPages > 0}">
+
+                                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                            <a class="page-link" href="#" th:onclick="'changePage(0)'"
+                                               th:title="#{pagination.start}">&laquo;</a>
+                                        </li>
+
+                                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                            <a class="page-link" href="#"
+                                               th:onclick="'changePage(' + (${currentPage} - 1) + ')'"
+                                               th:text="#{pagination.back}">Назад</a>
+                                        </li>
+
+                                        <li th:each="i : ${#numbers.sequence(
+                                        currentPage > 2 ? currentPage - 2 : 0,
+                                        currentPage + 2 < totalPages ? currentPage + 2 : totalPages - 1
+                                    )}"
+                                            class="page-item" th:classappend="${i == currentPage} ? 'active'">
+                                            <a class="page-link" href="#" th:text="${i + 1}"
+                                               th:onclick="'changePage(' + ${i} + ')'">1</a>
+                                        </li>
+
+                                        <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                                            <a class="page-link" href="#"
+                                               th:onclick="'changePage(' + (${currentPage} + 1) + ')'"
+                                               th:text="#{pagination.forward}">Вперед</a>
+                                        </li>
+
+                                        <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                                            <a class="page-link" href="#" th:onclick="'changePage(' + (${totalPages} - 1) + ')'"
+                                               th:title="#{pagination.end}">&raquo;</a>
+                                        </li>
+
+                                    </ul>
+                                </nav>
+                            </div>
+
                         </div>
+
+
+
                     </header>
 
                     <div class="table-container">
@@ -445,45 +488,6 @@
                         </table>
                     </div>
 
-                    <footer class="p-3 bg-light border-top">
-                        <nav aria-label="Page navigation">
-                            <ul class="pagination pagination-sm mb-0 justify-content-center" th:if="${totalPages > 0}">
-
-                                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                                    <a class="page-link" href="#" th:onclick="'changePage(0)'"
-                                       th:title="#{pagination.start}">&laquo;</a>
-                                </li>
-
-                                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                                    <a class="page-link" href="#"
-                                       th:onclick="'changePage(' + (${currentPage} - 1) + ')'"
-                                       th:text="#{pagination.back}">Назад</a>
-                                </li>
-
-                                <li th:each="i : ${#numbers.sequence(
-                                        currentPage > 2 ? currentPage - 2 : 0,
-                                        currentPage + 2 < totalPages ? currentPage + 2 : totalPages - 1
-                                    )}"
-                                    class="page-item" th:classappend="${i == currentPage} ? 'active'">
-                                    <a class="page-link" href="#" th:text="${i + 1}"
-                                       th:onclick="'changePage(' + ${i} + ')'">1</a>
-                                </li>
-
-                                <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
-                                    <a class="page-link" href="#"
-                                       th:onclick="'changePage(' + (${currentPage} + 1) + ')'"
-                                       th:text="#{pagination.forward}">Вперед</a>
-                                </li>
-
-                                <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
-                                    <a class="page-link" href="#" th:onclick="'changePage(' + (${totalPages} - 1) + ')'"
-                                       th:title="#{pagination.end}">&raquo;</a>
-                                </li>
-
-                            </ul>
-                        </nav>
-                    </footer>
-
                 </main>
 
             </div>
@@ -513,8 +517,19 @@
 
 
                 <div class="row mb-3">
-                    <h4 th:text="#{options.cleanup.header}">Очистка базы данных</h4>
+
                     <form id="settingsForm">
+
+                        <h4 th:text="#{options.cleanup.headerSQlite}">Очистка базы данных</h4>
+                        <div class="mb-3 form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="cleanupSQLiteEnabled">
+                            <label class="form-check-label" for="cleanupSQLiteEnabled" th:text="#{options.cleanup.enabledSQLite}">Включить
+                                удаление записей из журнала регистрации после переноса</label>
+                        </div>
+
+
+                        <h4 th:text="#{options.cleanup.header}">Очистка базы данных</h4>
+
                         <div class="mb-3 form-check form-switch">
                             <input class="form-check-input" type="checkbox" id="cleanupEnabled">
                             <label class="form-check-label" for="cleanupEnabled" th:text="#{options.cleanup.enabled}">Включить
@@ -544,6 +559,7 @@
                             </div>
                             <div class="form-text" th:text="#{options.cleanup.excluded.help}">Записи с этими типами событий не будут удаляться при очистке.</div>
                         </div>
+
 
                         <button type="button" class="btn btn-success" data-bs-toggle="modal"
                                 data-bs-target="#confirmSaveModal" th:text="#{options.cleanup.save}">Сохранить настройки
@@ -727,6 +743,7 @@
         fetch('/api/settings')
             .then(response => response.json())
             .then(data => {
+                document.getElementById('cleanupSQLiteEnabled').checked = data.cleanup_sqlite_enabled === 'true';
                 document.getElementById('cleanupEnabled').checked = data.cleanup_enabled === 'true';
                 document.getElementById('cleanupDays').value = data.cleanup_days || '365';
                 document.getElementById('excludedEventIds').value = data.cleanup_excluded_event_ids || '';
@@ -769,6 +786,7 @@
 
     function saveSettings() {
         const settings = [
+            {key: 'cleanup_sqlite_enabled', value: document.getElementById('cleanupEnabled').checked.toString()},
             {key: 'cleanup_enabled', value: document.getElementById('cleanupEnabled').checked.toString()},
             {key: 'cleanup_days', value: document.getElementById('cleanupDays').value},
             {key: 'cleanup_excluded_event_ids', value: document.getElementById('excludedEventIds').value}

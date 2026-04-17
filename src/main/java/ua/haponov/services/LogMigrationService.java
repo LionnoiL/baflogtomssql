@@ -1,5 +1,6 @@
 package ua.haponov.services;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -15,6 +16,7 @@ import java.util.Map;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class LogMigrationService {
 
     private static final Map<String, String> EVENT_NAME_MAP = Map.ofEntries(
@@ -133,13 +135,16 @@ public class LogMigrationService {
     private String mssqlPass;
     @Value("${app.migration.batch-size}")
     private int batchSize;
-    @Value("${app.migration.delete-after-sync:false}")
     private boolean deleteAfterSync;
+
+    private final SettingsService settingsService;
 
     @Scheduled(fixedDelayString = "${app.migration.interval-ms}")
     public void runMigration() {
 
         log.info("Starting migration cycle...");
+
+        deleteAfterSync = settingsService.isCleanupSQLiteEnabled();
 
         String selectSql = """
                   SELECT el.rowID, el.date, el.userCode, el.eventCode, el.computerCode, el.appCode,

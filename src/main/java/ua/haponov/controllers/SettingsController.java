@@ -26,6 +26,7 @@ public class SettingsController {
     @GetMapping("/cleanup/status")
     public Map<String, Object> getCleanupSettings() {
         return Map.of(
+                "sqliteEnabled", settingsService.isCleanupSQLiteEnabled(),
                 "enabled", settingsService.isCleanupEnabled(),
                 "days", settingsService.getCleanupDays(),
                 "excludedEventIds", settingsService.getExcludedEventIds()
