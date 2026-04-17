@@ -8,7 +8,6 @@ app:
   migration:
     batch-size: ${BATCH_SIZE:1000}
     interval-ms: ${INTERVAL_MS:60000}
-    delete-after-sync: ${DELETE_AFTER_SYNC:false}
   cleanup:
     interval-ms: ${CLEANUP_INTERVAL_MS:86400000}
 
