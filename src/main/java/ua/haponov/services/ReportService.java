@@ -75,23 +75,42 @@ public class ReportService {
         String filter = createDateFilter(params, from, to);
 
         String sql = """
-            SELECT 
-                MAX(event_human_name) as event_name,
-                MIN(event_date) as start_date,
-                MAX(event_date) as end_date,
-                DATEDIFF(SECOND, MIN(event_date), MAX(event_date)) as duration_sec
-            FROM ViewEventLog
-            """ + filter + """
-            AND event_human_name LIKE ?
-            GROUP BY session_id
-            HAVING DATEDIFF(SECOND, MIN(event_date), MAX(event_date)) > 0
-            ORDER BY start_date DESC
-            """;
-        
-        params.add("%Фоновое задание%");
+                SELECT
+                                 session_id,
+                                 MAX(metadata_name) as metadata_name,
+                                 MAX(CASE
+                                     WHEN event_code = '_$Job$_.Succeed' THEN 'Успешно'
+                                     WHEN event_code = '_$Job$_.Fail' THEN 'Ошибка выполнения'
+                                     WHEN event_code = '_$Job$_.Error' THEN 'Системная ошибка'
+                                     WHEN event_code = '_$Job$_.Cancel' THEN 'Отменено'
+                                     WHEN event_code = '_$Job$_.Terminate' THEN 'Прервано'
+                                     ELSE 'Завершено'
+                                 END) as status,
+                                 MAX(CASE WHEN event_code = '_$Job$_.Start' THEN event_date END) as start_date,
+                                 MAX(CASE WHEN event_code <> '_$Job$_.Start' THEN event_date END) as end_date,
+                                 DATEDIFF(SECOND,\s
+                                     MAX(CASE WHEN event_code = '_$Job$_.Start' THEN event_date END),\s
+                                     MAX(CASE WHEN event_code <> '_$Job$_.Start' THEN event_date END)
+                                 ) as duration_sec
+                             FROM ViewEventLog
+                """ + filter + """
+                                      AND event_code IN (
+                                      '_$Job$_.Start',\s
+                                      '_$Job$_.Finish',\s
+                                      '_$Job$_.Succeed',\s
+                                      '_$Job$_.Fail',\s
+                                      '_$Job$_.Error',\s
+                                      '_$Job$_.Cancel',\s
+                                      '_$Job$_.Terminate'
+                                  )
+                
+                                 GROUP BY session_id
+                                 HAVING MAX(CASE WHEN event_code = '_$Job$_.Start' THEN 1 ELSE 0 END) = 1
+                                 ORDER BY start_date DESC;
+                """;
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> new BackgroundTask(
-                rs.getString("event_name"),
+                rs.getString("metadata_name"),
                 rs.getString("start_date"),
                 rs.getString("end_date"),
                 rs.getLong("duration_sec")
