@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,11 +9,11 @@
         body, html {
             height: 100%;
             overflow: hidden;
+            font-size: 14px;
         }
 
         h1 {
             text-align: center;
-            margin-top: 10px;
             font-size: 24px;
             color: #333;
         }
@@ -574,6 +574,41 @@
         </div>
 
         <div class="tab-pane fade" id="reports" role="tabpanel" aria-labelledby="reports-tab">
+            <div class="container-fluid">
+                <div class="row mt-3">
+
+                    <div class="col-md-2">
+                        <div class="list-group" id="reportsList">
+                            <div class="list-group-item list-group-item-secondary" th:text="#{reports.cat.tech}">1. Технічний моніторинг</div>
+                            <button type="button" class="list-group-item list-group-item-action" data-report="top-errors" th:text="#{reports.type.top-errors}">Топ помилок та попереджень</button>
+                            <button type="button" class="list-group-item list-group-item-action" data-report="integrations" th:text="#{reports.type.integrations}">Моніторинг інтеграцій</button>
+                            <button type="button" class="list-group-item list-group-item-action" data-report="load-graph" th:text="#{reports.type.load-graph}">Графік навантаження</button>
+
+                            <div class="list-group-item list-group-item-secondary mt-2" th:text="#{reports.cat.business}">2. Бізнес-аудит</div>
+                            <button type="button" class="list-group-item list-group-item-action" data-report="user-activity" th:text="#{reports.type.user-activity}">Активність користувачів</button>
+                            <button type="button" class="list-group-item list-group-item-action" data-report="object-history" th:text="#{reports.type.object-history}">Історія об'єкта (CRUD)</button>
+
+                            <div class="list-group-item list-group-item-secondary mt-2" th:text="#{reports.cat.security}">3. Безпека</div>
+                            <button type="button" class="list-group-item list-group-item-action" data-report="auth-audit" th:text="#{reports.type.auth-audit}">Аудит авторизацій</button>
+                            <button type="button" class="list-group-item list-group-item-action" data-report="suspicious" th:text="#{reports.type.suspicious}">Підозріла активність</button>
+                        </div>
+                    </div>
+
+                    <div class="col-md-10">
+                        <div id="reportHeader" class="card mb-3 d-none">
+                            <div class="card-header bg-light"><strong th:text="#{reports.header.settings}">Налаштування звіту</strong></div>
+                            <div class="card-body" id="reportFilters">
+                            </div>
+                        </div>
+
+                        <div id="reportResult">
+                            <div class="text-center text-muted mt-5">
+                                <h5 th:text="#{reports.placeholder}">Оберіть звіт зі списку зліва для перегляду</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
         </div>
 
@@ -810,6 +845,78 @@
             values.push(id);
             input.value = values.join(', ');
         }
+    }
+
+    //REPORTS
+    document.querySelectorAll('#reportsList .list-group-item-action').forEach(button => {
+        button.addEventListener('click', function() {
+            document.querySelectorAll('#reportsList .list-group-item-action').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+
+            const reportType = this.getAttribute('data-report');
+            loadReport(reportType);
+        });
+    });
+
+    function loadReport(type) {
+        const resultContainer = document.getElementById('reportResult');
+        const headerContainer = document.getElementById('reportHeader');
+        const filtersContainer = document.getElementById('reportFilters');
+
+        resultContainer.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
+        filtersContainer.innerHTML = ''; // Очищаем старые фильтры
+
+        fetch(`/reports/fragment/${type}`)
+            .then(response => response.text())
+            .then(html => {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+
+                const filters = tempDiv.querySelector('#currentFilters');
+                if (filters) {
+                    filtersContainer.appendChild(filters);
+                    headerContainer.classList.remove('d-none');
+                } else {
+                    headerContainer.classList.add('d-none');
+                }
+
+                resultContainer.innerHTML = tempDiv.innerHTML;
+            })
+            .catch(err => {
+                resultContainer.innerHTML = '<div class="alert alert-danger">Помилка завантаження звіту</div>';
+            });
+    }
+
+    function refreshReportData(type) {
+        const resultContainer = document.getElementById('reportResult');
+        const from = document.getElementById('filterFrom')?.value;
+        const to = document.getElementById('filterTo')?.value;
+
+        let url = `/reports/fragment/${type}`;
+        const params = new URLSearchParams();
+        if (from) params.append('from', from);
+        if (to) params.append('to', to);
+
+        if (params.toString()) {
+            url += '?' + params.toString();
+        }
+
+        resultContainer.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
+
+        fetch(url)
+            .then(response => response.text())
+            .then(html => {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+
+                const filters = tempDiv.querySelector('#currentFilters');
+                if (filters) filters.remove();
+
+                resultContainer.innerHTML = tempDiv.innerHTML;
+            })
+            .catch(err => {
+                resultContainer.innerHTML = '<div class="alert alert-danger">Помилка оновлення даних</div>';
+            });
     }
 
 </script>

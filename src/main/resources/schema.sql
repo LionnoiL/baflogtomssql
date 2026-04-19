@@ -86,3 +86,41 @@ CREATE TABLE EventLogSync
     CONSTRAINT FK_EventLog_Severity FOREIGN KEY (severity) REFERENCES SeverityLevels (severity_id)
 )
     WITH (DATA_COMPRESSION = PAGE);
+
+IF OBJECT_ID('ViewEventLog', 'V') IS NOT NULL
+    DROP VIEW ViewEventLog;
+
+CREATE VIEW ViewEventLog AS
+SELECT 
+    l.row_id,
+    l.event_date,
+    l.transaction_date,
+    l.transaction_id,
+    l.session_id,
+    u.user_name,
+    u.uuid AS user_uuid,
+    en.event_human_name,
+    en.event_code,
+    c.computer_name,
+    a.app_name,
+    m.metadata_name,
+    m.uuid AS metadata_uuid,
+    sl.severity_name,
+    sl.severity_color,
+    l.comment,
+    l.data_info,
+    l.data,
+    l.search_content,
+    l.user_id,
+    l.event_id,
+    l.computer_id,
+    l.app_id,
+    l.metadata_id,
+    l.severity AS severity_id
+FROM EventLogSync l
+LEFT JOIN Users u ON l.user_id = u.user_id
+LEFT JOIN EventNames en ON l.event_id = en.event_id
+LEFT JOIN Computers c ON l.computer_id = c.computer_id
+LEFT JOIN Applications a ON l.app_id = a.app_id
+LEFT JOIN Metadata m ON l.metadata_id = m.metadata_id
+LEFT JOIN SeverityLevels sl ON l.severity = sl.severity_id;
