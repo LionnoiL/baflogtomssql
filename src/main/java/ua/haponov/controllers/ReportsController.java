@@ -36,11 +36,13 @@ public class ReportsController {
         model.addAttribute("from", from);
         model.addAttribute("to", to);
 
-        if ("top-errors".equals(type)) {
-            model.addAttribute("reportData", reportService.getMainDashboard(from, to));
-        } else if ("integrations".equals(type)) {
-            model.addAttribute("reportData", reportService.getBackgroundTasks(from, to));
-        }
+        Object data = switch (type) {
+            case "top-errors" -> reportService.getMainDashboard(from, to);
+            case "integrations" -> reportService.getBackgroundTasks(from, to);
+            default -> null;
+        };
+        model.addAttribute("reportData", data);
+
         return "reports/" + type + " :: report";
     }
 }
