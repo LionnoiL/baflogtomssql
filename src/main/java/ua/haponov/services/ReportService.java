@@ -27,7 +27,7 @@ public class ReportService {
 
         if (to != null && !to.isEmpty()) {
             dateFilter.append(" AND event_date <= ?");
-            params.add(to);
+            params.add(to + " 23:59:59");
         }
 
         return dateFilter.toString().replaceFirst(" AND", " WHERE");
@@ -88,19 +88,19 @@ public class ReportService {
                                  END) as status,
                                  MAX(CASE WHEN event_code = '_$Job$_.Start' THEN event_date END) as start_date,
                                  MAX(CASE WHEN event_code <> '_$Job$_.Start' THEN event_date END) as end_date,
-                                 DATEDIFF(SECOND,\s
-                                     MAX(CASE WHEN event_code = '_$Job$_.Start' THEN event_date END),\s
+                                 DATEDIFF(SECOND,
+                                     MAX(CASE WHEN event_code = '_$Job$_.Start' THEN event_date END),
                                      MAX(CASE WHEN event_code <> '_$Job$_.Start' THEN event_date END)
                                  ) as duration_sec
                              FROM ViewEventLog
                 """ + filter + """
                                       AND event_code IN (
-                                      '_$Job$_.Start',\s
-                                      '_$Job$_.Finish',\s
-                                      '_$Job$_.Succeed',\s
-                                      '_$Job$_.Fail',\s
-                                      '_$Job$_.Error',\s
-                                      '_$Job$_.Cancel',\s
+                                      '_$Job$_.Start',
+                                      '_$Job$_.Finish',
+                                      '_$Job$_.Succeed',
+                                      '_$Job$_.Fail',
+                                      '_$Job$_.Error',
+                                      '_$Job$_.Cancel',
                                       '_$Job$_.Terminate'
                                   )
                 
