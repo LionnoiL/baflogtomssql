@@ -1,5 +1,11 @@
 <div th:fragment="report">
 
+    <div id="currentFilters" class="row g-3">
+        <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-sm btn-primary" onclick="refreshReportData('current-users')" th:text="#{reports.btn.generate}">Сформувати</button>
+        </div>
+    </div>
+
     <div class="card">
         <div class="table-responsive">
 
