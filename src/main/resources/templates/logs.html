@@ -520,7 +520,9 @@
             <div class="p-4 w-100">
 
                 <div class="row mb-3">
-                    <label class="col-sm-1 col-form-label" th:text="#{options.language}">Язык интерфейса</label>
+
+                    <h4 th:text="#{options.language}">Язык интерфейса</h4>
+
                     <div class="col-sm-11">
                         <div class="btn-group" role="group" aria-label="Language switcher">
                             <a th:href="@{/logs(lang='uk')}"
