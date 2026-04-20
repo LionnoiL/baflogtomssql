@@ -4,8 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import ua.haponov.dto.reports.BackgroundTask;
+import ua.haponov.dto.reports.CurrentUser;
 import ua.haponov.dto.reports.SummaryStatsDto;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,10 +15,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ReportService {
 
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
     private final JdbcTemplate jdbcTemplate;
     private final SettingsService settingsService;
 
-    private String createDateFilter(List<Object> params, String from, String to){
+    private String createDateFilter(List<Object> params, String from, String to) {
         StringBuilder dateFilter = new StringBuilder();
         if (from != null && !from.isEmpty()) {
             dateFilter.append(" AND event_date >= ?");
@@ -70,7 +73,7 @@ public class ReportService {
         );
     }
 
-    public List<BackgroundTask> getBackgroundTasks(String from, String to){
+    public List<BackgroundTask> getBackgroundTasks(String from, String to) {
         List<Object> params = new ArrayList<>();
         String filter = createDateFilter(params, from, to);
 
@@ -115,5 +118,42 @@ public class ReportService {
                 rs.getString("end_date"),
                 rs.getLong("duration_sec")
         ), params.toArray());
+    }
+
+    public List<CurrentUser> getCurrentUsers() {
+
+        String sql = """
+                SELECT
+                    user_name,
+                    user_uuid,
+                    session_id,
+                    MIN(event_date) AS session_start_time
+                FROM ViewEventLog
+                WHERE event_date >= CAST(GETDATE() AS DATE)
+                  AND event_code IN ('_$Session$_.Start', '_$Session$_.Finish')
+                GROUP BY
+                    user_name,
+                    user_uuid,
+                    session_id
+                HAVING
+                    COUNT(CASE WHEN event_code = '_$Session$_.Start' THEN 1 END) > 0
+                    AND COUNT(CASE WHEN event_code = '_$Session$_.Finish' THEN 1 END) = 0
+                ORDER BY
+                    session_start_time ASC;
+                """;
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            var startTime = rs.getTimestamp("session_start_time");
+            String formattedDate = startTime != null
+                    ? startTime.toLocalDateTime().format(DATE_FORMATTER)
+                    : "";
+
+            return new CurrentUser(
+                    rs.getString("user_name"),
+                    rs.getString("user_uuid"),
+                    formattedDate,
+                    rs.getInt("session_id")
+            );
+        });
     }
 }

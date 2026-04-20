@@ -39,6 +39,7 @@ public class ReportsController {
         Object data = switch (type) {
             case "top-errors" -> reportService.getMainDashboard(from, to);
             case "integrations" -> reportService.getBackgroundTasks(from, to);
+            case "current-users" -> reportService.getCurrentUsers();
             default -> null;
         };
         model.addAttribute("reportData", data);
