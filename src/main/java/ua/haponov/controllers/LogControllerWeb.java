@@ -11,7 +11,9 @@ import ua.haponov.dto.*;
 import ua.haponov.services.DictionaryService;
 import ua.haponov.services.LogService;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +40,13 @@ public class LogControllerWeb {
             @RequestParam(required = false) List<Integer> events,
             @RequestParam(required = false) List<Integer> metadata,
             Model model) {
+
+        if (from == null) {
+            from = LocalDate.now().atStartOfDay();
+        }
+        if (to == null) {
+            to = LocalDate.now().atTime(23, 59, 59);
+        }
 
         List<SeverityLevel> severityLevels = dictionaryService.getSeverityLevels();
         List<Application> appSources = dictionaryService.getApplications();
