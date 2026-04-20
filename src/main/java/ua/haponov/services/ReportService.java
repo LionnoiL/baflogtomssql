@@ -123,24 +123,31 @@ public class ReportService {
     public List<CurrentUser> getCurrentUsers() {
 
         String sql = """
-                SELECT
-                    user_name,
-                    user_uuid,
-                    session_id,
-                    MIN(event_date) AS session_start_time
-                FROM ViewEventLog
-                WHERE event_date >= CAST(GETDATE() AS DATE)
-                  AND event_code IN ('_$Session$_.Start', '_$Session$_.Finish')
-                GROUP BY
-                    user_name,
-                    user_uuid,
-                    session_id
-                HAVING
-                    COUNT(CASE WHEN event_code = '_$Session$_.Start' THEN 1 END) > 0
-                    AND COUNT(CASE WHEN event_code = '_$Session$_.Finish' THEN 1 END) = 0
-                ORDER BY
-                    session_start_time ASC;
-                """;
+                WITH LastEvents AS (
+                   SELECT
+                       user_name,
+                       user_uuid,
+                       session_id,
+                       event_code,
+                       event_date,
+                       ROW_NUMBER() OVER (
+                           PARTITION BY user_uuid, session_id\s
+                           ORDER BY event_date DESC
+                       ) as rn
+                   FROM ViewEventLog
+                   WHERE event_date >= CAST(GETDATE() AS DATE)
+                     AND event_code IN ('_$Session$_.Start', '_$Session$_.Finish')
+               )
+               SELECT
+                   user_name,
+                   user_uuid,
+                   session_id,
+                   event_date AS session_start_time
+               FROM LastEvents
+               WHERE rn = 1
+                 AND event_code = '_$Session$_.Start'
+               ORDER BY event_date;
+               """;
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
             var startTime = rs.getTimestamp("session_start_time");
