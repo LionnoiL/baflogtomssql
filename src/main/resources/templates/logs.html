@@ -85,6 +85,20 @@
             border-top: 1px solid #dee2e6;
         }
 
+        .report-table-wrapper {
+            max-height: calc(100vh - 250px);
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+        }
+
+        .report-table-wrapper thead th {
+            position: sticky;
+            top: 0;
+            background-color: #f8f9fa;
+            z-index: 10;
+            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -182,6 +196,11 @@
         .tab-pane.active.show {
             display: flex !important;
             flex-direction: row;
+        }
+
+        #options.active.show {
+            flex-direction: column;
+            overflow-y: auto;
         }
 
         #sidebar, #content {
