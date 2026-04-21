@@ -1,6 +1,6 @@
 package ua.haponov.dto.reports;
 
-public record CurrentUser(
+public record CurrentUserDto(
         String name,
         String uuid,
         String sessionStartTime,

@@ -1,0 +1,115 @@
+<div th:fragment="report">
+
+    <div id="currentFilters" class="row g-3">
+
+        <div class="col-md-2">
+            <label class="form-label small mb-1" th:text="#{reports.filter.from}">Період з</label>
+            <input type="date" class="form-control form-control-sm" id="filterFrom" th:value="${from}">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small mb-1" th:text="#{reports.filter.to}">по</label>
+            <input type="date" class="form-control form-control-sm" id="filterTo" th:value="${to}">
+        </div>
+
+        <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-sm btn-primary" onclick="refreshReportData('load-graph')"
+                    th:text="#{reports.btn.generate}">Сформувати
+            </button>
+        </div>
+
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title" th:text="#{reports.load_graph.title}">График нагрузки по часам</h5>
+        </div>
+        <div class="card-body">
+
+            <div id="noDataMessage" class="d-none text-center py-5">
+                <p class="text-muted" th:text="#{reports.empty}">За вказаний період дані відсутні</p>
+            </div>
+
+            <div id="chartContainer" style="max-height: 400px;" class="d-none">
+                <canvas id="loadChart"></canvas>
+            </div>
+
+        </div>
+    </div>
+
+
+    <script th:inline="javascript">
+        setTimeout(function () {
+            const statsData = /*[[${reportData}]]*/ [];
+
+            const i18n = {
+                labelEvents: /*[[#{reports.load_graph.events_count}]]*/ 'Кількість подій',
+                labelPercentage: /*[[#{reports.load_graph.percentage}]]*/ 'Відсоток',
+                yAxisTitle: /*[[#{reports.load_graph.yaxis}]]*/ 'Кількість'
+            };
+
+            const noDataElem = document.getElementById('noDataMessage');
+            const chartContainer = document.getElementById('chartContainer');
+
+            if (!statsData || statsData.length === 0) {
+                noDataElem.classList.remove('d-none');
+                chartContainer.classList.add('d-none');
+                return;
+            }
+
+            noDataElem.classList.add('d-none');
+            chartContainer.classList.remove('d-none');
+
+            const labels = statsData.map(item => item.hour + ':00');
+            const counts = statsData.map(item => item.eventCount);
+            const percentages = statsData.map(item => item.loadPercentage);
+
+            const canvas = document.getElementById('loadChart');
+            if (!canvas) return;
+
+            const existingChart = Chart.getChart(canvas);
+            if (existingChart) {
+                existingChart.destroy();
+            }
+
+            new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: i18n.labelEvents,
+                        data: counts,
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {display: true, text: i18n.yAxisTitle}
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    label += context.parsed.y;
+                                    return label;
+                                },
+                                afterLabel: function (context) {
+                                    return i18n.labelPercentage + percentages[context.dataIndex] + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }, 50);
+    </script>
+
+</div>

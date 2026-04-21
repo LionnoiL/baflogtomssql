@@ -27,22 +27,28 @@ public class ReportsController {
             Model model) {
 
         if (from == null || from.isEmpty()) {
-            from = LocalDate.now().format(DateTimeFormatter.ISO_DATE);
+            from = switch (type) {
+                case "load-graph", "suspicious" -> LocalDate.now().minusDays(7).format(DateTimeFormatter.ISO_DATE);
+                case "top-errors" -> LocalDate.now().minusDays(30).format(DateTimeFormatter.ISO_DATE);
+                default -> LocalDate.now().format(DateTimeFormatter.ISO_DATE);
+            };
         }
+
         if (to == null || to.isEmpty()) {
             to = LocalDate.now().format(DateTimeFormatter.ISO_DATE);
         }
-
-        model.addAttribute("from", from);
-        model.addAttribute("to", to);
 
         Object data = switch (type) {
             case "top-errors" -> reportService.getMainDashboard(from, to);
             case "integrations" -> reportService.getBackgroundTasks(from, to);
             case "current-users" -> reportService.getCurrentUsers();
             case "suspicious" -> reportService.getSuspicionsReasons(from, to);
+            case "load-graph" -> reportService.getLoadGraph(from, to);
             default -> null;
         };
+
+        model.addAttribute("from", from);
+        model.addAttribute("to", to);
         model.addAttribute("reportData", data);
 
         return "reports/" + type + " :: report";

@@ -1,7 +1,7 @@
 package ua.haponov.dto.reports;
 
 
-public record BackgroundTask(
+public record BackgroundTaskDto(
         String name,
         String start,
         String end,

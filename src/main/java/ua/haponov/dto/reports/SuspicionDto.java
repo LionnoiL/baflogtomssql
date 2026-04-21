@@ -1,6 +1,6 @@
 package ua.haponov.dto.reports;
 
-public record Suspicion(
+public record SuspicionDto(
         String userName,
         String eventHumanName,
         String appName,

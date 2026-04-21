@@ -5,10 +5,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import ua.haponov.dto.reports.BackgroundTask;
-import ua.haponov.dto.reports.CurrentUser;
-import ua.haponov.dto.reports.SummaryStatsDto;
-import ua.haponov.dto.reports.Suspicion;
+import ua.haponov.dto.reports.*;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -77,7 +74,7 @@ public class ReportService {
         );
     }
 
-    public List<BackgroundTask> getBackgroundTasks(String from, String to) {
+    public List<BackgroundTaskDto> getBackgroundTasks(String from, String to) {
         List<Object> params = new ArrayList<>();
         String filter = createDateFilter(params, from, to);
 
@@ -116,7 +113,7 @@ public class ReportService {
                                  ORDER BY start_date DESC;
                 """;
 
-        return jdbcTemplate.query(sql, (rs, rowNum) -> new BackgroundTask(
+        return jdbcTemplate.query(sql, (rs, rowNum) -> new BackgroundTaskDto(
                 rs.getString("metadata_name"),
                 rs.getString("start_date"),
                 rs.getString("end_date"),
@@ -124,7 +121,7 @@ public class ReportService {
         ), params.toArray());
     }
 
-    public List<CurrentUser> getCurrentUsers() {
+    public List<CurrentUserDto> getCurrentUsers() {
 
         String sql = """
                  WITH LastEvents AS (
@@ -159,7 +156,7 @@ public class ReportService {
                     ? startTime.toLocalDateTime().format(DATE_FORMATTER)
                     : "";
 
-            return new CurrentUser(
+            return new CurrentUserDto(
                     rs.getString("user_name"),
                     rs.getString("user_uuid"),
                     formattedDate,
@@ -168,7 +165,7 @@ public class ReportService {
         });
     }
 
-    public List<Suspicion> getSuspicionsReasons(String from, String to) {
+    public List<SuspicionDto> getSuspicionsReasons(String from, String to) {
         List<Integer> weekendDays = settingsService.getWeekendDays();
         String nightStart = settingsService.getNightStartTime();
         String nightEnd = settingsService.getNightEndTime();
@@ -240,7 +237,7 @@ public class ReportService {
                     ? eventDate.toLocalDateTime().format(DATE_FORMATTER)
                     : "";
 
-            return new Suspicion(
+            return new SuspicionDto(
                     rs.getString("user_name"),
                     rs.getString("event_human_name"),
                     rs.getString("app_name"),
@@ -251,6 +248,33 @@ public class ReportService {
                     rs.getString("data_info")
             );
         }, finalParams.toArray());
+    }
+
+    public List<LoadStatsDto> getLoadGraph(String from, String to) {
+        List<Object> params = new ArrayList<>();
+        String filter = createDateFilter(params, from, to);
+
+        String sql = """
+                WITH HourlyStats AS (
+                    SELECT
+                        DATEPART(HOUR, event_date) AS [Hour],
+                        COUNT(*) AS EventCount
+                    FROM EventLogSync
+                """ + filter + """
+                    GROUP BY DATEPART(HOUR, event_date)
+                )
+                SELECT
+                    [Hour],
+                    EventCount,
+                    CAST(EventCount * 100.0 / SUM(EventCount) OVER() AS DECIMAL(5, 2)) AS LoadPercentage
+                FROM HourlyStats
+                ORDER BY [Hour];
+                """;
+        return jdbcTemplate.query(sql, (rs, rowNum) -> new LoadStatsDto(
+                rs.getInt("Hour"),
+                rs.getLong("EventCount"),
+                rs.getBigDecimal("LoadPercentage")
+        ), params.toArray());
     }
 }
 
