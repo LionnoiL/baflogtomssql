@@ -20,14 +20,14 @@
                     <tr>
                         <th th:text="#{reports.topErrors.table.header.event}">Подія</th>
                         <th th:text="#{reports.topErrors.table.header.level}">Рівень</th>
-                        <th th:text="#{reports.topErrors.table.header.count}" class="text-end">Кількість помилок</th>
+                        <th th:text="#{reports.topErrors.table.header.count}">Кількість помилок</th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr th:each="row : ${reportData.topErrors}">
                         <td th:text="${row.name}">Назва помилки</td>
                         <td><span class="badge bg-danger">Error / Critical</span></td>
-                        <td class="text-end" th:text="${row.count}">0</td>
+                        <td th:text="${row.count}">0</td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(reportData.topErrors)}">
                         <td th:text="#{reports.empty}" colspan="3" class="text-center text-muted">Помилок не знайдено</td>

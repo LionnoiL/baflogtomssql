@@ -14,7 +14,7 @@
                 <tr>
                     <th th:text="#{reports.currentUsers.table.header.name}">Подія</th>
                     <th th:text="#{reports.currentUsers.table.header.sessionId}">Сесія</th>
-                    <th th:text="#{reports.currentUsers.table.header.sessionStartTime}" class="text-end">Початок сесії
+                    <th th:text="#{reports.currentUsers.table.header.sessionStartTime}">Початок сесії
                     </th>
                 </tr>
                 </thead>
@@ -22,7 +22,7 @@
                 <tr th:each="row : ${reportData}">
                     <td th:text="${row.name}">Назва помилки</td>
                     <td th:text="${row.sessionId}"><</td>
-                    <td class="text-end" th:text="${row.sessionStartTime}"></td>
+                    <td th:text="${row.sessionStartTime}"></td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(reportData)}">
                     <td th:text="#{reports.empty}" colspan="3" class="text-center text-muted">Помилок не знайдено</td>

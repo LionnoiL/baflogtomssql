@@ -183,9 +183,9 @@ public class ReportService {
         List<Object> params = new ArrayList<>();
         String dateFilter = createDateFilter(params, from, to);
 
-        String weekendLabel = messageSource.getMessage("report.suspicion.weekend", null, "Выходной день", LocaleContextHolder.getLocale());
-        String nightLabel = messageSource.getMessage("report.suspicion.night", null, "Ночное время", LocaleContextHolder.getLocale());
-        String otherLabel = messageSource.getMessage("report.suspicion.other", null, "Другое", LocaleContextHolder.getLocale());
+        String weekendLabel = messageSource.getMessage("reports.suspicion.weekend", null, "Выходной день", LocaleContextHolder.getLocale());
+        String nightLabel = messageSource.getMessage("reports.suspicion.night", null, "Ночное время", LocaleContextHolder.getLocale());
+        String otherLabel = messageSource.getMessage("reports.suspicion.other", null, "Другое", LocaleContextHolder.getLocale());
 
         StringBuilder caseBuilder = new StringBuilder("CASE ");
         List<Object> caseParams = new ArrayList<>();

@@ -43,7 +43,7 @@
                     <td th:text="${row.eventDate}"></td>
                     <td th:text="${row.comment}"></td>
                     <td th:text="${row.suspicionReason}"></td>
-                    <td class="text-end" th:text="${row.dataInfo}"></td>
+                    <td th:text="${row.dataInfo}"></td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(reportData)}">
                     <td th:text="#{reports.empty}" colspan="8" class="text-center text-muted"></td>

@@ -21,7 +21,7 @@
                     <th th:text="#{reports.integrations.table.header.event}">Подія</th>
                     <th th:text="#{reports.integrations.table.header.start}">Дата початку</th>
                     <th th:text="#{reports.integrations.table.header.finish}">Дата завершення</th>
-                    <th th:text="#{reports.integrations.table.header.duration}" class="text-end">Час виконання</th>
+                    <th th:text="#{reports.integrations.table.header.duration}">Час виконання</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -30,7 +30,7 @@
                     <td th:text="${row.name}">Назва події</td>
                     <td th:text="${row.start}">Дата початку</td>
                     <td th:text="${row.end}">Дата завершення</td>
-                    <td class="text-end" th:text="${row.duration}">0</td>
+                    <td th:text="${row.duration}">0</td>
                 </tr>
 
                 <tr th:if="${#lists.isEmpty(reportData)}">
