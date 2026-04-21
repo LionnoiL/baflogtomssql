@@ -432,7 +432,8 @@
 
                             <div class="col-auto">
                                 <nav aria-label="Page navigation">
-                                    <ul class="pagination pagination-sm mb-0 justify-content-center" th:if="${totalPages > 0}">
+                                    <ul class="pagination pagination-sm mb-0 justify-content-center"
+                                        th:if="${totalPages > 0}">
 
                                         <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
                                             <a class="page-link" href="#" th:onclick="'changePage(0)'"
@@ -454,14 +455,17 @@
                                                th:onclick="'changePage(' + ${i} + ')'">1</a>
                                         </li>
 
-                                        <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                                        <li class="page-item"
+                                            th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
                                             <a class="page-link" href="#"
                                                th:onclick="'changePage(' + (${currentPage} + 1) + ')'"
                                                th:text="#{pagination.forward}">Вперед</a>
                                         </li>
 
-                                        <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
-                                            <a class="page-link" href="#" th:onclick="'changePage(' + (${totalPages} - 1) + ')'"
+                                        <li class="page-item"
+                                            th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                                            <a class="page-link" href="#"
+                                               th:onclick="'changePage(' + (${totalPages} - 1) + ')'"
                                                th:title="#{pagination.end}">&raquo;</a>
                                         </li>
 
@@ -470,7 +474,6 @@
                             </div>
 
                         </div>
-
 
 
                     </header>
@@ -517,81 +520,129 @@
 
         <div class="tab-pane fade flex-column" id="options" role="tabpanel" aria-labelledby="options-tab">
 
-            <div class="p-4 w-100">
+            <form id="settingsForm">
 
-                <div class="row mb-3">
+                <div class="p-4 row">
 
-                    <h4 th:text="#{options.language}">Язык интерфейса</h4>
+                    <div class="col-md-6">
 
-                    <div class="col-sm-11">
-                        <div class="btn-group" role="group" aria-label="Language switcher">
-                            <a th:href="@{/logs(lang='uk')}"
-                               class="btn"
-                               th:classappend="${#locale.language == 'uk'} ? 'btn-primary' : 'btn-outline-primary'"
-                               th:text="#{options.lang.uk}">Украинский</a>
-                            <a th:href="@{/logs(lang='ru')}"
-                               class="btn"
-                               th:classappend="${#locale.language == 'ru'} ? 'btn-primary' : 'btn-outline-primary'"
-                               th:text="#{options.lang.ru}">Русский</a>
-                        </div>
-                    </div>
-                </div>
+                        <div class="row mb-3">
 
+                            <h4 th:text="#{options.language}">Язык интерфейса</h4>
 
-                <div class="row mb-3">
-
-                    <form id="settingsForm">
-
-                        <h4 th:text="#{options.cleanup.headerSQlite}">Очистка базы данных</h4>
-                        <div class="mb-3 form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="cleanupSQLiteEnabled">
-                            <label class="form-check-label" for="cleanupSQLiteEnabled" th:text="#{options.cleanup.enabledSQLite}">Включить
-                                удаление записей из журнала регистрации после переноса</label>
-                        </div>
-
-
-                        <h4 th:text="#{options.cleanup.header}">Очистка базы данных</h4>
-
-                        <div class="mb-3 form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="cleanupEnabled">
-                            <label class="form-check-label" for="cleanupEnabled" th:text="#{options.cleanup.enabled}">Включить
-                                автоматическую
-                                очистку</label>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="cleanupDays" class="form-label" th:text="#{options.cleanup.days}">Удалять записи
-                                старше (дней):</label>
-                            <input type="number" class="form-control" id="cleanupDays" min="1" max="3650">
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="excludedEventIds" class="form-label" th:text="#{options.cleanup.excluded}">ID событий для исключения (через запятую):</label>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="excludedEventIds"
-                                       th:placeholder="#{options.cleanup.excluded.placeholder}">
-                                <button class="btn btn-outline-secondary dropdown-toggle" type="button" 
-                                        data-bs-toggle="dropdown" aria-expanded="false" 
-                                        id="eventsDropdownBtn" th:text="#{options.cleanup.select_events}"> Выбрать...
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end" id="eventsDropdownMenu" 
-                                    style="max-height: 300px; overflow-y: auto;">
-                                    <li><span class="dropdown-item-text text-muted" th:text="#{options.loading}">Загрузка...</span></li>
-                                </ul>
+                            <div class="col-sm-11">
+                                <div class="btn-group" role="group" aria-label="Language switcher">
+                                    <a th:href="@{/logs(lang='uk')}"
+                                       class="btn"
+                                       th:classappend="${#locale.language == 'uk'} ? 'btn-primary' : 'btn-outline-primary'"
+                                       th:text="#{options.lang.uk}">Украинский</a>
+                                    <a th:href="@{/logs(lang='ru')}"
+                                       class="btn"
+                                       th:classappend="${#locale.language == 'ru'} ? 'btn-primary' : 'btn-outline-primary'"
+                                       th:text="#{options.lang.ru}">Русский</a>
+                                </div>
                             </div>
-                            <div class="form-text" th:text="#{options.cleanup.excluded.help}">Записи с этими типами событий не будут удаляться при очистке.</div>
                         </div>
 
 
-                        <button type="button" class="btn btn-success" data-bs-toggle="modal"
-                                data-bs-target="#confirmSaveModal" th:text="#{options.cleanup.save}">Сохранить настройки
-                        </button>
-                    </form>
+                        <div class="row mb-3">
+
+
+                            <h4 th:text="#{options.cleanup.headerSQlite}">Очистка базы данных</h4>
+                            <div class="mb-3 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="cleanupSQLiteEnabled">
+                                <label class="form-check-label" for="cleanupSQLiteEnabled"
+                                       th:text="#{options.cleanup.enabledSQLite}">Включить
+                                    удаление записей из журнала регистрации после переноса</label>
+                            </div>
+
+
+                            <h4 th:text="#{options.cleanup.header}">Очистка базы данных</h4>
+
+                            <div class="mb-3 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="cleanupEnabled">
+                                <label class="form-check-label" for="cleanupEnabled"
+                                       th:text="#{options.cleanup.enabled}">Включить
+                                    автоматическую
+                                    очистку</label>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="cleanupDays" class="form-label" th:text="#{options.cleanup.days}">Удалять
+                                    записи
+                                    старше (дней):</label>
+                                <input type="number" class="form-control" id="cleanupDays" min="1" max="3650">
+                            </div>
+
+
+                            <div class="mb-3">
+                                <label for="excludedEventIds" class="form-label" th:text="#{options.cleanup.excluded}">ID
+                                    событий для исключения (через запятую):</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="excludedEventIds"
+                                           th:placeholder="#{options.cleanup.excluded.placeholder}">
+                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button"
+                                            data-bs-toggle="dropdown" aria-expanded="false"
+                                            id="eventsDropdownBtn" th:text="#{options.cleanup.select_events}">
+                                        Выбрать...
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end" id="eventsDropdownMenu"
+                                        style="max-height: 300px; overflow-y: auto;">
+                                        <li><span class="dropdown-item-text text-muted" th:text="#{options.loading}">Загрузка...</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="form-text" th:text="#{options.cleanup.excluded.help}">Записи с этими типами
+                                    событий не будут удаляться при очистке.
+                                </div>
+                            </div>
+
+
+                            <button type="button" class="btn btn-success" data-bs-toggle="modal"
+                                    data-bs-target="#confirmSaveModal" th:text="#{options.cleanup.save}"
+                                    style="max-width: 200px;">Сохранить
+                                настройки
+                            </button>
+
+                        </div>
+
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <h4 th:text="#{options.weekends.title}">Вихідні дні та нічний час</h4>
+
+                        <div class="mb-3">
+                            <label class="form-label" th:text="#{options.weekends.days}">Вихідні дні:</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                <div class="form-check form-check-inline" th:each="day : ${#numbers.sequence(1, 7)}">
+                                    <input class="form-check-input weekend-day" type="checkbox" th:value="${day}"
+                                           th:id="'day-' + ${day}">
+                                    <label class="form-check-label" th:for="'day-' + ${day}"
+                                           th:text="${#messages.msg('day.' + day)}">Пн</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="nightStartTime" class="form-label" th:text="#{options.night.start}">Початок
+                                    нічного часу:</label>
+                                <input type="time" class="form-control" id="nightStartTime" step="1">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="nightEndTime" class="form-label" th:text="#{options.night.end}">Кінець
+                                    нічного часу:</label>
+                                <input type="time" class="form-control" id="nightEndTime" step="1">
+                            </div>
+                        </div>
+
+                    </div>
+
                 </div>
 
-
-            </div>
-
+            </form>
 
         </div>
 
@@ -601,25 +652,53 @@
 
                     <div class="col-md-2">
                         <div class="list-group" id="reportsList">
-                            <div class="list-group-item list-group-item-secondary" th:text="#{reports.cat.tech}">1. Технічний моніторинг</div>
-                            <button type="button" class="list-group-item list-group-item-action" data-report="top-errors" th:text="#{reports.type.top-errors}">Топ помилок та попереджень</button>
-                            <button type="button" class="list-group-item list-group-item-action" data-report="integrations" th:text="#{reports.type.integrations}">Моніторинг інтеграцій</button>
-                            <button type="button" class="list-group-item list-group-item-action" data-report="load-graph" th:text="#{reports.type.load-graph}">Графік навантаження</button>
+                            <div class="list-group-item list-group-item-secondary" th:text="#{reports.cat.tech}">1.
+                                Технічний моніторинг
+                            </div>
+                            <button type="button" class="list-group-item list-group-item-action"
+                                    data-report="top-errors" th:text="#{reports.type.top-errors}">Топ помилок та
+                                попереджень
+                            </button>
+                            <button type="button" class="list-group-item list-group-item-action"
+                                    data-report="integrations" th:text="#{reports.type.integrations}">Моніторинг
+                                інтеграцій
+                            </button>
+                            <button type="button" class="list-group-item list-group-item-action"
+                                    data-report="load-graph" th:text="#{reports.type.load-graph}">Графік навантаження
+                            </button>
 
-                            <div class="list-group-item list-group-item-secondary mt-2" th:text="#{reports.cat.business}">2. Бізнес-аудит</div>
-                            <button type="button" class="list-group-item list-group-item-action" data-report="user-activity" th:text="#{reports.type.user-activity}">Активність користувачів</button>
-                            <button type="button" class="list-group-item list-group-item-action" data-report="object-history" th:text="#{reports.type.object-history}">Історія об'єкта (CRUD)</button>
+                            <div class="list-group-item list-group-item-secondary mt-2"
+                                 th:text="#{reports.cat.business}">2. Бізнес-аудит
+                            </div>
+                            <button type="button" class="list-group-item list-group-item-action"
+                                    data-report="user-activity" th:text="#{reports.type.user-activity}">Активність
+                                користувачів
+                            </button>
+                            <button type="button" class="list-group-item list-group-item-action"
+                                    data-report="object-history" th:text="#{reports.type.object-history}">Історія
+                                об'єкта (CRUD)
+                            </button>
 
-                            <div class="list-group-item list-group-item-secondary mt-2" th:text="#{reports.cat.security}">3. Безпека</div>
-                            <button type="button" class="list-group-item list-group-item-action" data-report="current-users" th:text="#{reports.type.current-users}">Поточні користувачі</button>
-                            <button type="button" class="list-group-item list-group-item-action" data-report="auth-audit" th:text="#{reports.type.auth-audit}">Аудит авторизацій</button>
-                            <button type="button" class="list-group-item list-group-item-action" data-report="suspicious" th:text="#{reports.type.suspicious}">Підозріла активність</button>
+                            <div class="list-group-item list-group-item-secondary mt-2"
+                                 th:text="#{reports.cat.security}">3. Безпека
+                            </div>
+                            <button type="button" class="list-group-item list-group-item-action"
+                                    data-report="current-users" th:text="#{reports.type.current-users}">Поточні
+                                користувачі
+                            </button>
+                            <button type="button" class="list-group-item list-group-item-action"
+                                    data-report="auth-audit" th:text="#{reports.type.auth-audit}">Аудит авторизацій
+                            </button>
+                            <button type="button" class="list-group-item list-group-item-action"
+                                    data-report="suspicious" th:text="#{reports.type.suspicious}">Підозріла активність
+                            </button>
                         </div>
                     </div>
 
                     <div class="col-md-10">
                         <div id="reportHeader" class="card mb-3 d-none">
-                            <div class="card-header bg-light"><strong th:text="#{reports.header.settings}">Налаштування звіту</strong></div>
+                            <div class="card-header bg-light"><strong th:text="#{reports.header.settings}">Налаштування
+                                звіту</strong></div>
                             <div class="card-body" id="reportFilters">
                             </div>
                         </div>
@@ -805,6 +884,15 @@
                 document.getElementById('cleanupEnabled').checked = data.cleanup_enabled === 'true';
                 document.getElementById('cleanupDays').value = data.cleanup_days || '365';
                 document.getElementById('excludedEventIds').value = data.cleanup_excluded_event_ids || '';
+
+                const weekends = (data.weekend_days || "").split(',').map(v => v.trim());
+                document.querySelectorAll('.weekend-day').forEach(cb => {
+                    cb.checked = weekends.includes(cb.value);
+                });
+
+                document.getElementById('nightStartTime').value = data.night_start_time || '23:00:00';
+                document.getElementById('nightEndTime').value = data.night_end_time || '06:00:00';
+
             });
 
 
@@ -843,11 +931,18 @@
     });
 
     function saveSettings() {
+        const selectedWeekends = Array.from(document.querySelectorAll('.weekend-day:checked'))
+            .map(cb => cb.value)
+            .join(',');
+
         const settings = [
             {key: 'cleanup_sqlite_enabled', value: document.getElementById('cleanupSQLiteEnabled').checked.toString()},
             {key: 'cleanup_enabled', value: document.getElementById('cleanupEnabled').checked.toString()},
             {key: 'cleanup_days', value: document.getElementById('cleanupDays').value},
-            {key: 'cleanup_excluded_event_ids', value: document.getElementById('excludedEventIds').value}
+            {key: 'cleanup_excluded_event_ids', value: document.getElementById('excludedEventIds').value},
+            {key: 'weekend_days', value: selectedWeekends},
+            {key: 'night_start_time', value: document.getElementById('nightStartTime').value},
+            {key: 'night_end_time', value: document.getElementById('nightEndTime').value}
         ];
 
         const promises = settings.map(s =>
@@ -872,7 +967,7 @@
 
     //REPORTS
     document.querySelectorAll('#reportsList .list-group-item-action').forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function () {
             document.querySelectorAll('#reportsList .list-group-item-action').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
 

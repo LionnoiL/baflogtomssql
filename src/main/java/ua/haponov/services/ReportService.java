@@ -1,11 +1,14 @@
 package ua.haponov.services;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import ua.haponov.dto.reports.BackgroundTask;
 import ua.haponov.dto.reports.CurrentUser;
 import ua.haponov.dto.reports.SummaryStatsDto;
+import ua.haponov.dto.reports.Suspicion;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -18,6 +21,7 @@ public class ReportService {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
     private final JdbcTemplate jdbcTemplate;
     private final SettingsService settingsService;
+    private final MessageSource messageSource;
 
     private String createDateFilter(List<Object> params, String from, String to) {
         StringBuilder dateFilter = new StringBuilder();
@@ -123,31 +127,31 @@ public class ReportService {
     public List<CurrentUser> getCurrentUsers() {
 
         String sql = """
-                WITH LastEvents AS (
-                   SELECT
-                       user_name,
-                       user_uuid,
-                       session_id,
-                       event_code,
-                       event_date,
-                       ROW_NUMBER() OVER (
-                           PARTITION BY user_uuid, session_id\s
-                           ORDER BY event_date DESC
-                       ) as rn
-                   FROM ViewEventLog
-                   WHERE event_date >= CAST(GETDATE() AS DATE)
-                     AND event_code IN ('_$Session$_.Start', '_$Session$_.Finish')
-               )
-               SELECT
-                   user_name,
-                   user_uuid,
-                   session_id,
-                   event_date AS session_start_time
-               FROM LastEvents
-               WHERE rn = 1
-                 AND event_code = '_$Session$_.Start'
-               ORDER BY event_date;
-               """;
+                 WITH LastEvents AS (
+                    SELECT
+                        user_name,
+                        user_uuid,
+                        session_id,
+                        event_code,
+                        event_date,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY user_uuid, session_id\s
+                            ORDER BY event_date DESC
+                        ) as rn
+                    FROM ViewEventLog
+                    WHERE event_date >= CAST(GETDATE() AS DATE)
+                      AND event_code IN ('_$Session$_.Start', '_$Session$_.Finish')
+                )
+                SELECT
+                    user_name,
+                    user_uuid,
+                    session_id,
+                    event_date AS session_start_time
+                FROM LastEvents
+                WHERE rn = 1
+                  AND event_code = '_$Session$_.Start'
+                ORDER BY event_date;
+                """;
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
             var startTime = rs.getTimestamp("session_start_time");
@@ -163,4 +167,90 @@ public class ReportService {
             );
         });
     }
+
+    public List<Suspicion> getSuspicionsReasons(String from, String to) {
+        List<Integer> weekendDays = settingsService.getWeekendDays();
+        String nightStart = settingsService.getNightStartTime();
+        String nightEnd = settingsService.getNightEndTime();
+
+        boolean hasWeekends = weekendDays != null && !weekendDays.isEmpty();
+        boolean hasNight = nightStart != null && !nightStart.isEmpty() && nightEnd != null && !nightEnd.isEmpty();
+
+        if (!hasWeekends && !hasNight) {
+            return new ArrayList<>();
+        }
+
+        List<Object> params = new ArrayList<>();
+        String dateFilter = createDateFilter(params, from, to);
+
+        String weekendLabel = messageSource.getMessage("report.suspicion.weekend", null, "Выходной день", LocaleContextHolder.getLocale());
+        String nightLabel = messageSource.getMessage("report.suspicion.night", null, "Ночное время", LocaleContextHolder.getLocale());
+        String otherLabel = messageSource.getMessage("report.suspicion.other", null, "Другое", LocaleContextHolder.getLocale());
+
+        StringBuilder caseBuilder = new StringBuilder("CASE ");
+        List<Object> caseParams = new ArrayList<>();
+
+        if (hasWeekends) {
+            String daysPlaceholder = weekendDays.stream().map(d -> "?").collect(java.util.stream.Collectors.joining(","));
+            caseBuilder.append("WHEN DATEPART(DW, event_date) IN (").append(daysPlaceholder).append(") THEN ? ");
+            caseParams.addAll(weekendDays);
+            caseParams.add(weekendLabel);
+        }
+
+        if (hasNight) {
+            caseBuilder.append("WHEN CAST(event_date AS TIME) >= ? OR CAST(event_date AS TIME) <= ? THEN ? ");
+            caseParams.add(nightStart);
+            caseParams.add(nightEnd);
+            caseParams.add(nightLabel);
+        }
+        caseBuilder.append("ELSE ? END");
+        caseParams.add(otherLabel);
+
+        StringBuilder suspicionFilter = new StringBuilder(" AND (");
+        List<Object> filterParams = new ArrayList<>();
+
+        if (hasWeekends) {
+            String daysPlaceholder = weekendDays.stream().map(d -> "?").collect(java.util.stream.Collectors.joining(","));
+            suspicionFilter.append("DATEPART(DW, event_date) IN (").append(daysPlaceholder).append(")");
+            filterParams.addAll(weekendDays);
+        }
+
+        if (hasNight) {
+            if (hasWeekends) suspicionFilter.append(" OR ");
+            suspicionFilter.append("(CAST(event_date AS TIME) >= ? OR CAST(event_date AS TIME) <= ?)");
+            filterParams.add(nightStart);
+            filterParams.add(nightEnd);
+        }
+        suspicionFilter.append(")");
+
+        String sql = "SELECT user_name, event_human_name, app_name, computer_name, event_date, " +
+                caseBuilder + " AS suspicion_reason, " +
+                "severity_name, comment, data_info FROM ViewEventLog " +
+                dateFilter + suspicionFilter +
+                " AND app_name NOT IN ('BackgroundJob') ORDER BY event_date DESC";
+
+        List<Object> finalParams = new ArrayList<>();
+        finalParams.addAll(caseParams);
+        finalParams.addAll(params);
+        finalParams.addAll(filterParams);
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            var eventDate = rs.getTimestamp("event_date");
+            String formattedDate = eventDate != null
+                    ? eventDate.toLocalDateTime().format(DATE_FORMATTER)
+                    : "";
+
+            return new Suspicion(
+                    rs.getString("user_name"),
+                    rs.getString("event_human_name"),
+                    rs.getString("app_name"),
+                    rs.getString("computer_name"),
+                    formattedDate,
+                    rs.getString("suspicion_reason"),
+                    rs.getString("comment"),
+                    rs.getString("data_info")
+            );
+        }, finalParams.toArray());
+    }
 }
+

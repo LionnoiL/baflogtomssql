@@ -1,0 +1,57 @@
+<div th:fragment="report">
+
+    <div id="currentFilters" class="row g-3">
+
+        <div class="col-md-2">
+            <label class="form-label small mb-1" th:text="#{reports.filter.from}">Період з</label>
+            <input type="date" class="form-control form-control-sm" id="filterFrom" th:value="${from}">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small mb-1" th:text="#{reports.filter.to}">по</label>
+            <input type="date" class="form-control form-control-sm" id="filterTo" th:value="${to}">
+        </div>
+
+        <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-sm btn-primary" onclick="refreshReportData('suspicious')" th:text="#{reports.btn.generate}">Сформувати</button>
+        </div>
+
+    </div>
+
+    <div class="card">
+        <div class="table-responsive">
+
+            <table class="table table-hover mb-0 table-striped">
+                <thead class="table-light">
+                <tr>
+                    <th th:text="#{reports.suspicious.table.header.name}">Користувач</th>
+                    <th th:text="#{reports.suspicious.table.header.event}">Подія</th>
+                    <th th:text="#{reports.suspicious.table.header.source}">Застосунок</th>
+                    <th th:text="#{reports.suspicious.table.header.computer}">Комп'ютер</th>
+                    <th th:text="#{reports.suspicious.table.header.date}">Дата</th>
+                    <th th:text="#{reports.suspicious.table.header.comment}">Коментар</th>
+                    <th th:text="#{reports.suspicious.table.header.suspicionReason}">Причина підозри</th>
+                    <th th:text="#{reports.suspicious.table.header.data}">Данні
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="row : ${reportData}">
+                    <td th:text="${row.userName}"></td>
+                    <td th:text="${row.eventHumanName}"></td>
+                    <td th:text="${row.appName}"></td>
+                    <td th:text="${row.computerName}"></td>
+                    <td th:text="${row.eventDate}"></td>
+                    <td th:text="${row.comment}"></td>
+                    <td th:text="${row.suspicionReason}"></td>
+                    <td class="text-end" th:text="${row.dataInfo}"></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(reportData)}">
+                    <td th:text="#{reports.empty}" colspan="8" class="text-center text-muted"></td>
+                </tr>
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+</div>

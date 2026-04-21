@@ -40,6 +40,7 @@ public class ReportsController {
             case "top-errors" -> reportService.getMainDashboard(from, to);
             case "integrations" -> reportService.getBackgroundTasks(from, to);
             case "current-users" -> reportService.getCurrentUsers();
+            case "suspicious" -> reportService.getSuspicionsReasons(from, to);
             default -> null;
         };
         model.addAttribute("reportData", data);

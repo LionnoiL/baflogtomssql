@@ -67,4 +67,21 @@ public class SettingsService {
     public int getCleanupDays() {
         return Integer.parseInt(getSetting("cleanup_days", "365"));
     }
+
+    public List<Integer> getWeekendDays() {
+        String value = getSetting("weekend_days", "");
+        if (value.isBlank()) return List.of();
+        return java.util.Arrays.stream(value.split(","))
+                .map(String::trim)
+                .map(Integer::parseInt)
+                .collect(Collectors.toList());
+    }
+
+    public String getNightStartTime() {
+        return getSetting("night_start_time", "23:00:00");
+    }
+
+    public String getNightEndTime() {
+        return getSetting("night_end_time", "06:00:00");
+    }
 }
