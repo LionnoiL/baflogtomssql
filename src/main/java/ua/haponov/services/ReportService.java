@@ -309,5 +309,38 @@ public class ReportService {
                 rs.getInt("SessionsCount")
         ), params.toArray());
     }
-}
 
+    public List<ActivityMatrixDto> getActivityMatrix(String from, String to) {
+
+        List<Object> params = new ArrayList<>();
+        String filter = createDateFilter(params, from, to);
+
+        String sql = """
+                SELECT
+                    DATEPART(HOUR, event_date) AS [Hour],
+                    COUNT(CASE WHEN DATEPART(DW, event_date) = 1 THEN 1 END) AS [Mon],
+                    COUNT(CASE WHEN DATEPART(DW, event_date) = 2 THEN 1 END) AS [Tue],
+                    COUNT(CASE WHEN DATEPART(DW, event_date) = 3 THEN 1 END) AS [Wed],
+                    COUNT(CASE WHEN DATEPART(DW, event_date) = 4 THEN 1 END) AS [Thu],
+                    COUNT(CASE WHEN DATEPART(DW, event_date) = 5 THEN 1 END) AS [Fri],
+                    COUNT(CASE WHEN DATEPART(DW, event_date) = 6 THEN 1 END) AS [Sat],
+                    COUNT(CASE WHEN DATEPART(DW, event_date) = 7 THEN 1 END) AS [Sun],
+                    COUNT(*) AS TotalPerHour
+                FROM EventLogSync
+                """ + filter + """
+                GROUP BY DATEPART(HOUR, event_date)
+                ORDER BY [Hour];
+                """;
+        return jdbcTemplate.query(sql, (rs, rowNum) -> new ActivityMatrixDto(
+                rs.getInt("Hour"),
+                rs.getLong("Mon"),
+                rs.getLong("Tue"),
+                rs.getLong("Wed"),
+                rs.getLong("Thu"),
+                rs.getLong("Fri"),
+                rs.getLong("Sat"),
+                rs.getLong("Sun"),
+                rs.getLong("TotalPerHour")
+        ), params.toArray());
+    }
+}

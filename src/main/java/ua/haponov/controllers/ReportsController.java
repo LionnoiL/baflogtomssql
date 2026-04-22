@@ -29,8 +29,8 @@ public class ReportsController {
         if (from == null || from.isEmpty()) {
             from = switch (type) {
                 case "load-graph", "suspicious" -> LocalDate.now().minusDays(7).format(DateTimeFormatter.ISO_DATE);
-                case "top-errors" -> LocalDate.now().minusDays(30).format(DateTimeFormatter.ISO_DATE);
-                case "intra-diurnal-activity" -> LocalDate.now().minusDays(30).format(DateTimeFormatter.ISO_DATE);
+                case "top-errors", "intra-diurnal-activity", "activity_matrix" ->
+                        LocalDate.now().minusDays(30).format(DateTimeFormatter.ISO_DATE);
                 default -> LocalDate.now().format(DateTimeFormatter.ISO_DATE);
             };
         }
@@ -46,6 +46,7 @@ public class ReportsController {
             case "suspicious" -> reportService.getSuspicionsReasons(from, to);
             case "load-graph" -> reportService.getLoadGraph(from, to);
             case "intra-diurnal-activity" -> reportService.getIntraDiurnalActivity(from, to);
+            case "activity_matrix" -> reportService.getActivityMatrix(from, to);
             default -> null;
         };
 

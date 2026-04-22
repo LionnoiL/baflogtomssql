@@ -1,0 +1,134 @@
+<div th:fragment="report">
+
+    <div id="currentFilters" class="row g-3">
+
+        <div class="col-md-2">
+            <label class="form-label small mb-1" th:text="#{reports.filter.from}">Період з</label>
+            <input type="date" class="form-control form-control-sm" id="filterFrom" th:value="${from}">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small mb-1" th:text="#{reports.filter.to}">по</label>
+            <input type="date" class="form-control form-control-sm" id="filterTo" th:value="${to}">
+        </div>
+
+        <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-sm btn-primary" onclick="refreshReportData('activity_matrix')"
+                    th:text="#{reports.btn.generate}">Сформувати
+            </button>
+        </div>
+
+        <div class="col-md-12 d-flex align-items-end">
+            <div class="alert alert-info mb-0 py-1 px-3 small w-100">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                <span th:text="#{reports.activity_matrix.description}"></span>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title" th:text="#{reports.activity_matrix.title}"></h5>
+        </div>
+        <div class="card-body">
+
+            <div id="noDataMessage" class="d-none text-center py-5">
+                <p class="text-muted" th:text="#{reports.empty}"></p>
+            </div>
+
+            <div id="matrixContainer" class="table-responsive d-none">
+                <table class="table table-bordered table-sm text-center align-middle"
+                       style="table-layout: fixed; font-size: 0.85rem;">
+                    <thead class="table-light">
+                    <tr>
+                        <th style="width: 80px;" th:text="#{reports.hour}">Hour</th>
+                        <th th:text="#{reports.day.mon}">Mon</th>
+                        <th th:text="#{reports.day.tue}">Tue</th>
+                        <th th:text="#{reports.day.wed}">Wed</th>
+                        <th th:text="#{reports.day.thu}">Thu</th>
+                        <th th:text="#{reports.day.fri}">Fri</th>
+                        <th th:text="#{reports.day.sat}">Sat</th>
+                        <th th:text="#{reports.day.sun}">Sun</th>
+                        <th class="table-secondary" th:text="#{reports.total}">Total</th>
+                    </tr>
+                    </thead>
+                    <tbody id="matrixBody">
+                    <!-- Data will be injected here -->
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <style>
+        .heatmap-cell {
+            transition: transform 0.2s;
+            cursor: default;
+        }
+
+        .heatmap-cell:hover {
+            transform: scale(1.1);
+            outline: 2px solid #000;
+            z-index: 10;
+        }
+    </style>
+
+    <script th:inline="javascript">
+        (function () {
+            const data = /*[[${reportData}]]*/ [];
+            const container = document.getElementById('matrixContainer');
+            const noData = document.getElementById('noDataMessage');
+            const tbody = document.getElementById('matrixBody');
+
+            if (!data || data.length === 0) {
+                noData.classList.remove('d-none');
+                container.classList.add('d-none');
+                return;
+            }
+
+            container.classList.remove('d-none');
+
+            const maxValue = Math.max(...data.flatMap(d => [d.mon, d.tue, d.wed, d.thu, d.fri, d.sat, d.sun]));
+
+            const getColor = (value) => {
+                if (value === 0) return 'transparent';
+                const alpha = 0.1 + (value / maxValue) * 0.7;
+                return `rgba(13, 110, 253, ${alpha})`;
+            };
+
+            const getTextColor = (value) => {
+                const ratio = value / maxValue;
+                return ratio > 0.5 ? '#fff' : '#000';
+            };
+
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+
+                const days = [
+                    {val: row.mon}, {val: row.tue}, {val: row.wed},
+                    {val: row.thu}, {val: row.fri}, {val: row.sat}, {val: row.sun}
+                ];
+
+                let html = `<th class="table-light">${row.hour}:00</th>`;
+
+                days.forEach(day => {
+                    const color = getColor(day.val);
+                    const textColor = getTextColor(day.val);
+                    html += `
+                        <td class="heatmap-cell" 
+                            style="background-color: ${color}; color: ${textColor};" 
+                            title="${day.val} events">
+                            ${day.val > 0 ? day.val : ''}
+                        </td>`;
+                });
+
+                html += `<td class="table-secondary fw-bold">${row.totalPerHour}</td>`;
+
+                tr.innerHTML = html;
+                tbody.appendChild(tr);
+            });
+        })();
+    </script>
+
+</div>
