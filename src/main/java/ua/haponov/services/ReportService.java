@@ -343,4 +343,51 @@ public class ReportService {
                 rs.getLong("TotalPerHour")
         ), params.toArray());
     }
+
+    public List<AuthAuditDto> getAuthorizationAudit(String from, String to) {
+        List<Object> params = new ArrayList<>();
+        String filter = createDateFilter(params, from, to);
+
+        String sql = """
+                SELECT
+                      l.event_date,
+                      l.user_name,
+                      l.computer_name,
+                      l.app_name,
+                      CASE
+                          WHEN l.event_code = '_$Session$_.Start' THEN N'Успішний вхід'
+                          WHEN l.event_code = '_$Session$_.AuthenticationError' THEN N'Помилка автентифікації'
+                          WHEN l.event_code = '_$Session$_.Authentication' THEN N'Автентифікація'
+                          ELSE N'Інше'
+                      END AS auth_status,
+                      l.severity_name,
+                      l.comment,
+                  	l.data_info,
+                  	l.data
+                  FROM ViewEventLog l
+                """ + filter + """
+                    AND  (l.event_code LIKE '_$Session$_.Start%'
+                       OR l.event_code LIKE '_$Session$_.Authentication%')
+                  	AND l.app_name != 'HTTPServiceConnection'
+                  ORDER BY
+                    l.event_date ASC;
+                """;
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            var eventDate = rs.getTimestamp("event_date");
+            String formattedDate = eventDate != null
+                    ? eventDate.toLocalDateTime().format(DATE_FORMATTER)
+                    : "";
+
+            return new AuthAuditDto(
+                    formattedDate,
+                    rs.getString("user_name"),
+                    rs.getString("computer_name"),
+                    rs.getString("app_name"),
+                    rs.getString("auth_status"),
+                    rs.getString("severity_name"),
+                    rs.getString("comment"),
+                    DataInfoDecoder.extractValue(rs.getString("data"))
+            );
+        }, params.toArray());
+    }
 }

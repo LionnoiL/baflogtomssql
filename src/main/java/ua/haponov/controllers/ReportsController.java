@@ -47,6 +47,7 @@ public class ReportsController {
             case "load-graph" -> reportService.getLoadGraph(from, to);
             case "intra-diurnal-activity" -> reportService.getIntraDiurnalActivity(from, to);
             case "activity_matrix" -> reportService.getActivityMatrix(from, to);
+            case "auth-audit" -> reportService.getAuthorizationAudit(from, to);
             default -> null;
         };
 
