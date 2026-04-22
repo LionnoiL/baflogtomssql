@@ -1,0 +1,54 @@
+<div th:fragment="report">
+
+    <div id="currentFilters" class="row g-3">
+        <div class="col-md-2">
+            <label class="form-label small mb-1" th:text="#{reports.filter.from}">Період з</label>
+            <input type="date" class="form-control form-control-sm" id="filterFrom" th:value="${from}">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small mb-1" th:text="#{reports.filter.to}">по</label>
+            <input type="date" class="form-control form-control-sm" id="filterTo" th:value="${to}">
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-sm btn-primary" onclick="refreshReportData('administrative-action')"
+                    th:text="#{reports.btn.generate}">Сформувати
+            </button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="report-table-wrapper">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th th:text="#{table.date}">Дата</th>
+                    <th th:text="#{table.user}">Користувач</th>
+                    <th th:text="#{table.computer}">Комп'ютер</th>
+                    <th th:text="#{table.source}">Додаток</th>
+                    <th th:text="#{table.event}">Подія</th>
+                    <th th:text="#{table.comment}">Коментар</th>
+                    <th th:text="#{table.data}">Данні</th>
+                </tr>
+                </thead>
+                <tbody>
+
+                <tr th:each="row : ${reportData}">
+                    <td th:text="${row.eventDate}">01.01.2024</td>
+                    <td th:text="${row.userName}">User</td>
+                    <td th:text="${row.computerName}">PC</td>
+                    <td th:text="${row.appName}">1C</td>
+                    <td th:text="${row.eventHumanName}">Подія</td>
+                    <td th:text="${row.comment}">Коментар</td>
+                    <td th:text="${row.dataInfo}"></td>
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(reportData)}">
+                    <td th:text="#{reports.empty}" colspan="6" class="text-center text-muted">Подій не знайдено</td>
+                </tr>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>

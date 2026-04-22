@@ -28,7 +28,8 @@ public class ReportsController {
 
         if (from == null || from.isEmpty()) {
             from = switch (type) {
-                case "load-graph", "suspicious" -> LocalDate.now().minusDays(7).format(DateTimeFormatter.ISO_DATE);
+                case "load-graph", "suspicious", "administrative-action" ->
+                        LocalDate.now().minusDays(7).format(DateTimeFormatter.ISO_DATE);
                 case "top-errors", "intra-diurnal-activity", "activity_matrix" ->
                         LocalDate.now().minusDays(30).format(DateTimeFormatter.ISO_DATE);
                 default -> LocalDate.now().format(DateTimeFormatter.ISO_DATE);
@@ -48,6 +49,7 @@ public class ReportsController {
             case "intra-diurnal-activity" -> reportService.getIntraDiurnalActivity(from, to);
             case "activity_matrix" -> reportService.getActivityMatrix(from, to);
             case "auth-audit" -> reportService.getAuthorizationAudit(from, to);
+            case "administrative-action" -> reportService.getAdministrativeActions(from, to);
             default -> null;
         };
 

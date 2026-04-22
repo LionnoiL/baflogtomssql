@@ -390,4 +390,43 @@ public class ReportService {
             );
         }, params.toArray());
     }
+
+    public List<AdministrativeActionDto> getAdministrativeActions(String from, String to) {
+        List<Object> params = new ArrayList<>();
+        String filter = createDateFilter(params, from, to);
+
+        String sql = """
+                SELECT
+                    event_date,
+                    user_name,
+                    computer_name,
+                    event_human_name,
+                    app_name,
+                    comment,
+                    data_info
+                FROM ViewEventLog
+                """ + filter + """
+                    AND event_code LIKE '%InfoBase%'
+                    AND user_name IS NOT NULL
+                ORDER BY
+                    event_date ASC;
+                """;
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            var eventDate = rs.getTimestamp("event_date");
+            String formattedDate = eventDate != null
+                    ? eventDate.toLocalDateTime().format(DATE_FORMATTER)
+                    : "";
+
+            return new AdministrativeActionDto(
+                    formattedDate,
+                    rs.getString("user_name"),
+                    rs.getString("computer_name"),
+                    rs.getString("event_human_name"),
+                    rs.getString("app_name"),
+                    rs.getString("comment"),
+                    rs.getString("data_info")
+            );
+        }, params.toArray());
+    }
 }
