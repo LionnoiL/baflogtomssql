@@ -17,6 +17,13 @@
             </button>
         </div>
 
+        <div class="col-md-12 d-flex align-items-end">
+            <div class="alert alert-info mb-0 py-1 px-3 small w-100">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                <span th:text="#{reports.load_graph.description}">Опис логіки розрахунку активності.</span>
+            </div>
+        </div>
+
     </div>
 
     <div class="card">
@@ -29,7 +36,7 @@
                 <p class="text-muted" th:text="#{reports.empty}">За вказаний період дані відсутні</p>
             </div>
 
-            <div id="chartContainer" style="max-height: 400px;" class="d-none">
+            <div id="chartContainer" class="d-none" style="height: 400px;">
                 <canvas id="loadChart"></canvas>
             </div>
 
@@ -39,7 +46,7 @@
 
     <script th:inline="javascript">
         setTimeout(function () {
-            const statsData = /*[[${reportData}]]*/ [];
+            const loadStatsData = /*[[${reportData}]]*/ [];
 
             const i18n = {
                 labelEvents: /*[[#{reports.load_graph.events_count}]]*/ 'Кількість подій',
@@ -50,7 +57,7 @@
             const noDataElem = document.getElementById('noDataMessage');
             const chartContainer = document.getElementById('chartContainer');
 
-            if (!statsData || statsData.length === 0) {
+            if (!loadStatsData || loadStatsData.length === 0) {
                 noDataElem.classList.remove('d-none');
                 chartContainer.classList.add('d-none');
                 return;
@@ -59,9 +66,9 @@
             noDataElem.classList.add('d-none');
             chartContainer.classList.remove('d-none');
 
-            const labels = statsData.map(item => item.hour + ':00');
-            const counts = statsData.map(item => item.eventCount);
-            const percentages = statsData.map(item => item.loadPercentage);
+            const labels = loadStatsData.map(item => item.hour + ':00');
+            const counts = loadStatsData.map(item => item.eventCount);
+            const percentages = loadStatsData.map(item => item.loadPercentage);
 
             const canvas = document.getElementById('loadChart');
             if (!canvas) return;
@@ -102,13 +109,14 @@
                                     return label;
                                 },
                                 afterLabel: function (context) {
-                                    return i18n.labelPercentage + percentages[context.dataIndex] + '%';
+                                    return i18n.labelPercentage + ': ' + percentages[context.dataIndex] + '%';
                                 }
                             }
                         }
                     }
                 }
             });
+
         }, 50);
     </script>
 

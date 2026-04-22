@@ -250,6 +250,13 @@ public class ReportService {
         }, finalParams.toArray());
     }
 
+    public ChartsLoadDto getChartsLoad(String from, String to) {
+        return new ChartsLoadDto(
+                getLoadGraph(from, to),
+                getIntraDiurnalActivity(from, to)
+        );
+    }
+
     public List<LoadStatsDto> getLoadGraph(String from, String to) {
         List<Object> params = new ArrayList<>();
         String filter = createDateFilter(params, from, to);
@@ -274,6 +281,32 @@ public class ReportService {
                 rs.getInt("Hour"),
                 rs.getLong("EventCount"),
                 rs.getBigDecimal("LoadPercentage")
+        ), params.toArray());
+    }
+
+    public List<IntraDiurnalActivityDto> getIntraDiurnalActivity(String from, String to) {
+        List<Object> params = new ArrayList<>();
+        String filter = createDateFilter(params, from, to);
+
+        String sql = """
+                SELECT
+                    CAST(event_date AS DATE) AS [Date],
+                    DATENAME(DW, event_date) AS [DayOfWeek],
+                    COUNT(*) AS EventCount,
+                    COUNT(DISTINCT user_uuid) AS UniqueUsers,
+                    COUNT(DISTINCT session_id) AS SessionsCount
+                FROM ViewEventLog
+                """ + filter + """
+                GROUP BY CAST(event_date AS DATE), DATENAME(DW, event_date)
+                ORDER BY [Date] DESC;
+                """;
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> new IntraDiurnalActivityDto(
+                rs.getString("Date"),
+                rs.getString("DayOfWeek"),
+                rs.getInt("EventCount"),
+                rs.getInt("UniqueUsers"),
+                rs.getInt("SessionsCount")
         ), params.toArray());
     }
 }

@@ -198,7 +198,7 @@
             flex-direction: row;
         }
 
-        #options.active.show {
+        #options.active.show, #reports.active.show {
             flex-direction: column;
             overflow-y: auto;
         }
@@ -686,6 +686,10 @@
                                     data-report="load-graph" th:text="#{reports.type.load-graph}">Графік навантаження
                             </button>
 
+                            <button type="button" class="list-group-item list-group-item-action"
+                                    data-report="intra-diurnal-activity" th:text="#{reports.type.intra_diurnal}">Активність за днями
+                            </button>
+
                             <div class="list-group-item list-group-item-secondary mt-2"
                                  th:text="#{reports.cat.business}">2. Бізнес-аудит
                             </div>
@@ -1015,7 +1019,7 @@
         const filtersContainer = document.getElementById('reportFilters');
 
         resultContainer.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
-        filtersContainer.innerHTML = ''; // Очищаем старые фильтры
+        filtersContainer.innerHTML = '';
 
         fetch(`/reports/fragment/${type}`)
             .then(response => response.text())

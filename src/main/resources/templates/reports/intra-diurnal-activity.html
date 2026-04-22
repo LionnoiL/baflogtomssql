@@ -1,0 +1,129 @@
+<div th:fragment="report">
+
+    <div id="currentFilters" class="row g-3">
+
+        <div class="col-md-2">
+            <label class="form-label small mb-1" th:text="#{reports.filter.from}">Період з</label>
+            <input type="date" class="form-control form-control-sm" id="filterFrom" th:value="${from}">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small mb-1" th:text="#{reports.filter.to}">по</label>
+            <input type="date" class="form-control form-control-sm" id="filterTo" th:value="${to}">
+        </div>
+
+        <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-sm btn-primary" onclick="refreshReportData('intra-diurnal-activity')"
+                    th:text="#{reports.btn.generate}">Сформувати
+            </button>
+        </div>
+
+        <div class="col-md-12 d-flex align-items-end">
+            <div class="alert alert-info mb-0 py-1 px-3 small w-100">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                <span th:text="#{reports.intra_diurnal.description}">Опис логіки розрахунку активності.</span>
+            </div>
+        </div>
+
+    </div>
+
+
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="card-title" th:text="#{reports.intra_diurnal.title}">Активність за днями</h5>
+        </div>
+        <div class="card-body">
+
+            <div id="noDataMessageIntraDiurnal" class="d-none text-center py-5">
+                <p class="text-muted" th:text="#{reports.empty}">За вказаний період дані відсутні</p>
+            </div>
+
+            <div id="chartContainerIntraDiurnal" class="d-none" style="height: 400px;">
+                <canvas id="intraDiurnalActivityChart"></canvas>
+            </div>
+
+        </div>
+    </div>
+
+
+    <script th:inline="javascript">
+        setTimeout(function () {
+            const intraDiurnalActivityData = /*[[${reportData}]]*/ [];
+
+            const i18n = {
+                labelEvents: /*[[#{reports.load_graph.events_count}]]*/ 'Кількість подій',
+                labelUsers: /*[[#{reports.intra_diurnal.users}]]*/ 'Унікальні користувачі',
+                labelSessions: /*[[#{reports.intra_diurnal.sessions}]]*/ 'Сесії'
+            };
+
+            const noDataIntraDiurnalElem = document.getElementById('noDataMessageIntraDiurnal');
+            const chartContainerIntraDiurnal = document.getElementById('chartContainerIntraDiurnal');
+
+            if (!intraDiurnalActivityData || intraDiurnalActivityData.length === 0) {
+                noDataIntraDiurnalElem.classList.remove('d-none');
+                chartContainerIntraDiurnal.classList.add('d-none');
+                return;
+            }
+
+            noDataIntraDiurnalElem.classList.add('d-none');
+            chartContainerIntraDiurnal.classList.remove('d-none');
+
+            const intraCanvas = document.getElementById('intraDiurnalActivityChart');
+            if (intraCanvas && intraDiurnalActivityData && intraDiurnalActivityData.length > 0) {
+                const existingIntraChart = Chart.getChart(intraCanvas);
+                if (existingIntraChart) {
+                    existingIntraChart.destroy();
+                }
+
+                const sortedData = [...intraDiurnalActivityData].reverse();
+
+                new Chart(intraCanvas, {
+                    type: 'line',
+                    data: {
+                        labels: sortedData.map(item => item.date),
+                        datasets: [
+                            {
+                                label: i18n.labelEvents,
+                                data: sortedData.map(item => item.eventCount),
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                                fill: true,
+                                tension: 0.3
+                            },
+                            {
+                                label: i18n.labelUsers,
+                                data: sortedData.map(item => item.uniqueUsers),
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                backgroundColor: 'transparent',
+                                tension: 0.3
+                            },
+                            {
+                                label: i18n.labelSessions,
+                                data: sortedData.map(item => item.sessionsCount),
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                backgroundColor: 'transparent',
+                                tension: 0.3
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: /*[[#{reports.intra_diurnal.title}]]*/ 'Активність за днями'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {display: true, text: i18n.yAxisTitle}
+                            }
+                        }
+                    }
+                });
+            }
+        }, 50);
+    </script>
+
+</div>
