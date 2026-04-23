@@ -110,7 +110,7 @@ public class ReportService {
                 
                                  GROUP BY session_id
                                  HAVING MAX(CASE WHEN event_code = '_$Job$_.Start' THEN 1 ELSE 0 END) = 1
-                                 ORDER BY start_date DESC;
+                                 ORDER BY start_date ASC;
                 """;
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> new BackgroundTaskDto(
