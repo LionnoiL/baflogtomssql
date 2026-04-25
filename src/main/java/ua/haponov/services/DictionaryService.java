@@ -7,12 +7,30 @@ import org.springframework.stereotype.Service;
 import ua.haponov.dto.*;
 
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Service
 @RequiredArgsConstructor
 public class DictionaryService {
 
     private final JdbcTemplate jdbcTemplate;
+    private final List<Integer> infoBaseEventIds = new CopyOnWriteArrayList<>();
+
+    public void refreshEventCache() {
+        List<Integer> ids = jdbcTemplate.queryForList(
+                "SELECT event_id FROM EventNames WHERE event_code LIKE '%InfoBase%'",
+                Integer.class
+        );
+        infoBaseEventIds.clear();
+        infoBaseEventIds.addAll(ids);
+    }
+
+    public List<Integer> getInfoBaseEventIds() {
+        if (infoBaseEventIds.isEmpty()) {
+            refreshEventCache();
+        }
+        return infoBaseEventIds;
+    }
 
     public List<User> getUsers() {
         return jdbcTemplate.query(

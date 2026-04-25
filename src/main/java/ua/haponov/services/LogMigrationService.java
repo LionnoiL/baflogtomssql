@@ -138,6 +138,7 @@ public class LogMigrationService {
     private boolean deleteAfterSync;
 
     private final SettingsService settingsService;
+    private final DictionaryService dictionaryService;
 
     @Scheduled(fixedDelayString = "${app.migration.interval-ms}")
     public void runMigration() {
@@ -173,6 +174,8 @@ public class LogMigrationService {
             syncApplications(sqliteConn, mssqlConn);
             syncComputers(sqliteConn, mssqlConn);
             syncEventNames(sqliteConn, mssqlConn);
+
+            dictionaryService.refreshEventCache();
 
             Map<Integer, String> metadataMap = getNameMap(mssqlConn, "Metadata", "metadata_id", "metadata_name");
 

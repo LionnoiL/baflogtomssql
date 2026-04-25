@@ -5,7 +5,8 @@ CREATE TABLE SeverityLevels
     severity_id    INT PRIMARY KEY,
     severity_name  NVARCHAR(50) NOT NULL,
     severity_color VARCHAR(20)
-);
+)
+GO
 
 IF
 OBJECT_ID('Users', 'U') IS NULL
@@ -14,7 +15,8 @@ CREATE TABLE Users
     user_id   INT PRIMARY KEY,
     user_name NVARCHAR(255) NOT NULL,
     uuid      VARCHAR(36) UNIQUE NOT NULL
-);
+)
+GO
 
 IF
 OBJECT_ID('Computers', 'U') IS NULL
@@ -22,7 +24,8 @@ CREATE TABLE Computers
 (
     computer_id   INT PRIMARY KEY,
     computer_name NVARCHAR(255) UNIQUE NOT NULL
-);
+)
+GO
 
 IF
 OBJECT_ID('Applications', 'U') IS NULL
@@ -30,7 +33,8 @@ CREATE TABLE Applications
 (
     app_id   INT PRIMARY KEY,
     app_name NVARCHAR(255) UNIQUE NOT NULL
-);
+)
+GO
 
 IF
 OBJECT_ID('Metadata', 'U') IS NULL
@@ -39,7 +43,8 @@ CREATE TABLE Metadata
     metadata_id   INT PRIMARY KEY,
     metadata_name NVARCHAR(255) NOT NULL,
     uuid          VARCHAR(36) UNIQUE NOT NULL
-);
+)
+GO
 
 IF
 OBJECT_ID('EventNames', 'U') IS NULL
@@ -48,14 +53,16 @@ CREATE TABLE EventNames
     event_id         INT PRIMARY KEY,
     event_code       VARCHAR(255) UNIQUE NOT NULL,
     event_human_name NVARCHAR(255)
-);
+)
+GO
 
 IF OBJECT_ID('Settings', 'U') IS NULL
 CREATE TABLE Settings
 (
     setting_key   NVARCHAR(100) PRIMARY KEY,
     setting_value NVARCHAR(MAX)
-);
+)
+GO
 
 IF
 OBJECT_ID('EventLogSync', 'U') IS NULL
@@ -84,11 +91,12 @@ CREATE TABLE EventLogSync
     CONSTRAINT FK_EventLog_App FOREIGN KEY (app_id) REFERENCES Applications (app_id),
     CONSTRAINT FK_EventLog_Metadata FOREIGN KEY (metadata_id) REFERENCES Metadata (metadata_id),
     CONSTRAINT FK_EventLog_Severity FOREIGN KEY (severity) REFERENCES SeverityLevels (severity_id)
-)
-    WITH (DATA_COMPRESSION = PAGE);
+) WITH (DATA_COMPRESSION = PAGE)
+GO
 
 IF OBJECT_ID('ViewEventLog', 'V') IS NOT NULL
-    DROP VIEW ViewEventLog;
+    DROP VIEW ViewEventLog
+GO
 
 CREATE VIEW ViewEventLog AS
 SELECT 
@@ -123,4 +131,59 @@ LEFT JOIN EventNames en ON l.event_id = en.event_id
 LEFT JOIN Computers c ON l.computer_id = c.computer_id
 LEFT JOIN Applications a ON l.app_id = a.app_id
 LEFT JOIN Metadata m ON l.metadata_id = m.metadata_id
-LEFT JOIN SeverityLevels sl ON l.severity = sl.severity_id;
+LEFT JOIN SeverityLevels sl ON l.severity = sl.severity_id
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes 
+               WHERE name = 'IX_EventLogSync_EventDate' 
+               AND object_id = OBJECT_ID('EventLogSync'))
+BEGIN
+    CREATE INDEX IX_EventLogSync_EventDate
+        ON EventLogSync (event_date DESC)
+        INCLUDE (user_id, event_id, severity, computer_id, app_id, metadata_id)
+        WITH (DATA_COMPRESSION = PAGE);
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes 
+               WHERE name = 'IX_EventLogSync_EventId_Date_Session' 
+               AND object_id = OBJECT_ID('EventLogSync'))
+BEGIN
+    CREATE INDEX IX_EventLogSync_EventId_Date_Session
+        ON EventLogSync (event_id, event_date)
+        INCLUDE (session_id, metadata_id)
+        WITH (DATA_COMPRESSION = PAGE);
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes
+               WHERE name = 'IX_EventLogSync_EventId_Date_Session'
+               AND object_id = OBJECT_ID('EventLogSync'))
+BEGIN
+    CREATE INDEX IX_EventLogSync_EventId_Date_Session
+        ON EventLogSync (event_id, event_date)
+        INCLUDE (session_id, metadata_id)
+        WITH (DATA_COMPRESSION = PAGE);
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes 
+               WHERE name = 'IX_EventLogSync_Date_Severity' 
+               AND object_id = OBJECT_ID('EventLogSync'))
+BEGIN
+    CREATE INDEX IX_EventLogSync_Date_Severity
+        ON EventLogSync (event_date, severity)
+        INCLUDE (user_id, event_id)
+        WITH (DATA_COMPRESSION = PAGE);
+END
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes
+               WHERE name = 'IX_EventLogSync_Date_Only'
+               AND object_id = OBJECT_ID('EventLogSync'))
+BEGIN
+CREATE INDEX IX_EventLogSync_Date_Only
+    ON EventLogSync (event_date)
+    WITH (DATA_COMPRESSION = PAGE);
+END
+GO

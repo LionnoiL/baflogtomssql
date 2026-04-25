@@ -10,6 +10,7 @@ import ua.haponov.dto.reports.*;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +19,7 @@ public class ReportService {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
     private final JdbcTemplate jdbcTemplate;
     private final SettingsService settingsService;
+    private final DictionaryService dictionaryService;
     private final MessageSource messageSource;
 
     private String createDateFilter(List<Object> params, String from, String to) {
@@ -395,22 +397,33 @@ public class ReportService {
         List<Object> params = new ArrayList<>();
         String filter = createDateFilter(params, from, to);
 
+        List<Integer> eventIds = dictionaryService.getInfoBaseEventIds();
+
+        List<Integer> safeIds = eventIds.isEmpty() ? List.of(-1) : eventIds;
+        safeIds.forEach(params::add);
+
+        String placeholders = safeIds.stream()
+                .map(id -> "?")
+                .collect(Collectors.joining(", "));
+
         String sql = """
                 SELECT
-                    event_date,
-                    user_name,
-                    computer_name,
-                    event_human_name,
-                    app_name,
-                    comment,
-                    data_info
-                FROM ViewEventLog
-                """ + filter + """
-                    AND event_code LIKE '%InfoBase%'
-                    AND user_name IS NOT NULL
-                ORDER BY
-                    event_date ASC;
-                """;
+                    l.event_date,
+                    u.user_name,
+                    c.computer_name,
+                    en.event_human_name,
+                    a.app_name,
+                    l.comment,
+                    l.data_info
+                FROM EventLogSync l
+                INNER JOIN Users u        ON l.user_id = u.user_id
+                INNER JOIN EventNames en  ON l.event_id = en.event_id
+                LEFT  JOIN Computers c    ON l.computer_id = c.computer_id
+                LEFT  JOIN Applications a ON l.app_id = a.app_id
+                """
+                + filter.replace("event_date", "l.event_date")
+                + " AND l.event_id IN (" + placeholders + ")"
+                + " ORDER BY l.event_date ASC";
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
             var eventDate = rs.getTimestamp("event_date");

@@ -30,6 +30,7 @@ spring:
       mode: always
       platform: mssql
       encoding: UTF-8
+      separator: GO
   datasource:
     url: ${app.mssql.url}
     username: ${app.mssql.username}
