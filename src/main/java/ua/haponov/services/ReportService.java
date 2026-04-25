@@ -191,7 +191,7 @@ public class ReportService {
 
         if (hasWeekends) {
             String daysPlaceholder = weekendDays.stream().map(d -> "?").collect(java.util.stream.Collectors.joining(","));
-            caseBuilder.append("WHEN DATEPART(DW, event_date) IN (").append(daysPlaceholder).append(") THEN ? ");
+            caseBuilder.append("WHEN event_dw IN (").append(daysPlaceholder).append(") THEN ? ");
             caseParams.addAll(weekendDays);
             caseParams.add(weekendLabel);
         }
@@ -210,7 +210,7 @@ public class ReportService {
 
         if (hasWeekends) {
             String daysPlaceholder = weekendDays.stream().map(d -> "?").collect(java.util.stream.Collectors.joining(","));
-            suspicionFilter.append("DATEPART(DW, event_date) IN (").append(daysPlaceholder).append(")");
+            suspicionFilter.append("event_dw IN (").append(daysPlaceholder).append(")");
             filterParams.addAll(weekendDays);
         }
 
@@ -266,11 +266,11 @@ public class ReportService {
         String sql = """
                 WITH HourlyStats AS (
                     SELECT
-                        DATEPART(HOUR, event_date) AS [Hour],
+                        event_hour AS [Hour],
                         COUNT(*) AS EventCount
                     FROM EventLogSync
                 """ + filter + """
-                    GROUP BY DATEPART(HOUR, event_date)
+                    GROUP BY event_hour
                 )
                 SELECT
                     [Hour],
@@ -293,19 +293,17 @@ public class ReportService {
         String sql = """
                 SELECT
                     CAST(event_date AS DATE) AS [Date],
-                    DATENAME(DW, event_date) AS [DayOfWeek],
                     COUNT(*) AS EventCount,
-                    COUNT(DISTINCT user_uuid) AS UniqueUsers,
+                    COUNT(DISTINCT user_id) AS UniqueUsers,
                     COUNT(DISTINCT session_id) AS SessionsCount
-                FROM ViewEventLog
+                FROM EventLogSync
                 """ + filter + """
-                GROUP BY CAST(event_date AS DATE), DATENAME(DW, event_date)
+                GROUP BY CAST(event_date AS DATE)
                 ORDER BY [Date] DESC;
                 """;
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> new IntraDiurnalActivityDto(
                 rs.getString("Date"),
-                rs.getString("DayOfWeek"),
                 rs.getInt("EventCount"),
                 rs.getInt("UniqueUsers"),
                 rs.getInt("SessionsCount")
@@ -319,18 +317,18 @@ public class ReportService {
 
         String sql = """
                 SELECT
-                    DATEPART(HOUR, event_date) AS [Hour],
-                    COUNT(CASE WHEN DATEPART(DW, event_date) = 1 THEN 1 END) AS [Mon],
-                    COUNT(CASE WHEN DATEPART(DW, event_date) = 2 THEN 1 END) AS [Tue],
-                    COUNT(CASE WHEN DATEPART(DW, event_date) = 3 THEN 1 END) AS [Wed],
-                    COUNT(CASE WHEN DATEPART(DW, event_date) = 4 THEN 1 END) AS [Thu],
-                    COUNT(CASE WHEN DATEPART(DW, event_date) = 5 THEN 1 END) AS [Fri],
-                    COUNT(CASE WHEN DATEPART(DW, event_date) = 6 THEN 1 END) AS [Sat],
-                    COUNT(CASE WHEN DATEPART(DW, event_date) = 7 THEN 1 END) AS [Sun],
+                    event_hour AS [Hour],
+                    COUNT(CASE WHEN event_dw = 1 THEN 1 END) AS [Mon],
+                    COUNT(CASE WHEN event_dw= 2 THEN 1 END) AS [Tue],
+                    COUNT(CASE WHEN event_dw = 3 THEN 1 END) AS [Wed],
+                    COUNT(CASE WHEN event_dw= 4 THEN 1 END) AS [Thu],
+                    COUNT(CASE WHEN event_dw = 5 THEN 1 END) AS [Fri],
+                    COUNT(CASE WHEN event_dw = 6 THEN 1 END) AS [Sat],
+                    COUNT(CASE WHEN event_dw = 7 THEN 1 END) AS [Sun],
                     COUNT(*) AS TotalPerHour
                 FROM EventLogSync
                 """ + filter + """
-                GROUP BY DATEPART(HOUR, event_date)
+                GROUP BY event_hour
                 ORDER BY [Hour];
                 """;
         return jdbcTemplate.query(sql, (rs, rowNum) -> new ActivityMatrixDto(
