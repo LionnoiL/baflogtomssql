@@ -350,6 +350,14 @@ public class ReportService {
         List<Object> params = new ArrayList<>();
         String filter = createDateFilter(params, from, to);
 
+        List<Integer> eventIds = dictionaryService.getSessionEventIds();
+
+        List<Integer> safeIds = eventIds.isEmpty() ? List.of(-1) : eventIds;
+        safeIds.forEach(params::add);
+
+        String placeholders = safeIds.stream()
+                .map(id -> "?")
+                .collect(Collectors.joining(", "));
         String sql = """
                 SELECT
                       l.event_date,
@@ -367,9 +375,9 @@ public class ReportService {
                   	l.data_info,
                   	l.data
                   FROM ViewEventLog l
-                """ + filter + """
-                    AND  (l.event_code LIKE '_$Session$_.Start%'
-                       OR l.event_code LIKE '_$Session$_.Authentication%')
+                """ + filter +
+                " AND  l.event_id IN (" + placeholders + ")" +
+                """
                   	AND l.app_name != 'HTTPServiceConnection'
                   ORDER BY
                     l.event_date ASC;

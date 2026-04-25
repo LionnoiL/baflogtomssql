@@ -15,6 +15,7 @@ public class DictionaryService {
 
     private final JdbcTemplate jdbcTemplate;
     private final List<Integer> infoBaseEventIds = new CopyOnWriteArrayList<>();
+    private final List<Integer> sessionEventIds = new CopyOnWriteArrayList<>();
 
     public void refreshEventCache() {
         List<Integer> ids = jdbcTemplate.queryForList(
@@ -23,6 +24,13 @@ public class DictionaryService {
         );
         infoBaseEventIds.clear();
         infoBaseEventIds.addAll(ids);
+
+        ids = jdbcTemplate.queryForList(
+                "SELECT event_id FROM EventNames WHERE event_code LIKE '%Session%'",
+                Integer.class
+        );
+        sessionEventIds.clear();
+        sessionEventIds.addAll(ids);
     }
 
     public List<Integer> getInfoBaseEventIds() {
@@ -30,6 +38,13 @@ public class DictionaryService {
             refreshEventCache();
         }
         return infoBaseEventIds;
+    }
+
+    public List<Integer> getSessionEventIds() {
+        if (sessionEventIds.isEmpty()) {
+            refreshEventCache();
+        }
+        return sessionEventIds;
     }
 
     public List<User> getUsers() {
